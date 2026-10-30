@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Фруктовая лавка — фрукты, овощи и зелень оптом</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f7f4;
+    --surface: #ffffff;
+    --text: #2c3e2e;
+    --muted: #6b7a6e;
+    --green: #367d28;
+    --green-hover: #2b661e;
+    --border: #e0e8e0;
+    --shadow: 0 12px 36px rgba(44, 62, 46, 0.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: 'Montserrat', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+  body.is-locked { overflow: hidden; }
+  button, input, select { font: inherit; color: inherit; }
+  h1, h2, h3, p { margin: 0; }
+
+  /* ---------- Шапка ---------- */
+  .header {
+    position: sticky; top: 0; z-index: 30;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .header__inner {
+    max-width: 1180px; margin: 0 auto; padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 12px;
+    text-decoration: none; color: var(--green);
+  }
+  .logo__icon { font-size: 34px; line-height: 1; }
+  .logo__text {
+    font-family: 'Caveat', cursive;
+    font-size: 34px; font-weight: 700; letter-spacing: 0.5px;
+    margin-top: -6px;
+  }
+  .nav { display: flex; gap: 28px; }
+  .nav__link {
+    text-decoration: none; color: var(--text);
+    font-weight: 600; font-size: 15px;
+    transition: color 0.2s;
+  }
+  .nav__link:hover, .nav__link.is-active { color: var(--green); }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative;
+    padding: 80px 20px 100px; /* Увеличены отступы, так как убрали баннеры */
+    text-align: center;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 15% 30%, rgba(225, 30, 60, 0.1), transparent 40%),
+      radial-gradient(circle at 85% 20%, rgba(255, 180, 0, 0.12), transparent 40%),
+      radial-gradient(circle at 50% 80%, rgba(60, 180, 60, 0.12), transparent 50%),
+      #f7faf7;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero__bg-fruit {
+    position: absolute; font-size: 140px; opacity: 0.08;
+    pointer-events: none; user-select: none;
+  }
+  .hero__bg-fruit--1 { top: 15%; left: 8%; transform: rotate(-15deg); }
+  .hero__bg-fruit--2 { top: 20%; right: 10%; transform: rotate(20deg); }
+  .hero__bg-fruit--3 { bottom: 10%; left: 18%; transform: rotate(10deg); font-size: 100px; }
+  .hero__bg-fruit--4 { bottom: 15%; right: 15%; transform: rotate(-25deg); font-size: 110px; }
+
+  .hero__inner {
+    position: relative; z-index: 1;
+    max-width: 800px; margin: 0 auto;
+  }
+  .hero__title {
+    font-size: clamp(32px, 5vw, 46px);
+    font-weight: 800; letter-spacing: -0.03em;
+    line-height: 1.15; color: #1a261c;
+  }
+  .hero__sub {
+    margin-top: 16px;
+    font-size: 17px; color: var(--muted);
+    max-width: 600px; margin-left: auto; margin-right: auto;
+    line-height: 1.5;
+  }
+
+  .hero__search {
+    position: relative;
+    max-width: 640px; margin: 40px auto 0;
+  }
+  .hero__search-icon {
+    position: absolute; left: 24px; top: 50%; transform: translateY(-50%);
+    font-size: 20px; color: var(--green); pointer-events: none;
+  }
+  .hero__search input {
+    width: 100%; padding: 20px 170px 20px 60px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 17px; outline: none;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .hero__search input::placeholder { color: #a0a8a0; }
+  .hero__search input:focus {
+    border-color: var(--green);
+    box-shadow: 0 16px 40px rgba(54, 125, 40, 0.15);
+  }
+  .hero__search-btn {
+    position: absolute; right: 8px; top: 8px; bottom: 8px;
+    padding: 0 32px; border: none; border-radius: 999px; cursor: pointer;
+    background: var(--green); color: #fff;
+    font-size: 16px; font-weight: 600;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .hero__search-btn:hover { background: var(--green-hover); }
+  .hero__search-btn:active { transform: scale(0.97); }
+
+  /* ---------- Каталог ---------- */
+  .main {
+    max-width: 1180px; margin: 0 auto;
+    padding: 60px 20px 90px;
+  }
+  .catalog-head {
+    text-align: center; margin-bottom: 40px;
+  }
+  .catalog-head h2 {
+    font-size: 32px; font-weight: 800; letter-spacing: -0.02em;
+    color: #1a261c;
+  }
+  .catalog-head p {
+    color: var(--muted); font-size: 15px; margin-top: 10px;
+  }
+
+  .toolbar {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    flex-wrap: wrap; margin-bottom: 32px;
+    background: var(--surface); padding: 10px 16px;
+    border-radius: 999px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    border: 1px solid var(--border);
+  }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    padding: 10px 22px; border-radius: 999px; cursor: pointer;
+    border: none; background: transparent;
+    color: var(--muted); font-size: 14px; font-weight: 600;
+    transition: background 0.2s, color 0.2s;
+  }
+  .chip:hover { color: var(--text); background: var(--bg); }
+  .chip.is-active { background: var(--green); color: #fff; }
+
+  .sort {
+    padding: 10px 16px; border-radius: 999px;
+    border: none; background: var(--bg);
+    font-size: 14px; font-weight: 600; color: var(--text);
+    cursor: pointer; outline: none;
+  }
+
+  .count { text-align: center; font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+
+  /* Сетка карточек товаров */
+  .grid {
+    display: grid; gap: 28px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+
+  .card {
+    display: flex; flex-direction: column; overflow: hidden;
+    background: var(--surface);
+    border-radius: 16px 16px 56px 56px; /* Фирменное скругление */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  }
+  /* Верхняя цветная полоса в зависимости от категории */
+  .card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px;
+    z-index: 10;
+  }
+  .card--fruits::before { background: linear-gradient(90deg, #ff416c, #ff4b2b); }
+  .card--vegetables::before { background: linear-gradient(90deg, #f7971e, #ffd200); }
+  .card--greens::before { background: linear-gradient(90deg, #56ab2f, #a8e063); }
+
+  /* Слайд-шоу */
+  .slider {
+    position: relative; overflow: hidden;
+    aspect-ratio: 4 / 3;
+    background: #ffffff;
+    touch-action: pan-y; user-select: none;
+    border-radius: 12px 12px 0 0;
+  }
+  .slider__track {
+    display: flex; height: 100%;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .slide {
+    flex: 0 0 100%; position: relative;
+    display: grid; place-items: center;
+    background: #ffffff;
+  }
+  /* Легкое цветное свечение на фоне вместо тяжелого градиента */
+  .slide::after {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 50%, var(--c1), transparent 70%);
+    opacity: 0.15;
+  }
+  .slide__emoji {
+    font-size: 90px; position: relative; z-index: 1;
+    filter: drop-shadow(0 16px 24px rgba(0, 0, 0, 0.15));
+    transition: transform 0.3s;
+  }
+  .card:hover .slide__emoji { transform: scale(1.1) rotate(-3deg); }
+  
+  .slide__label {
+    position: absolute; left: 14px; bottom: 14px; z-index: 2;
+    padding: 5px 12px; border-radius: 999px; font-size: 11px;
+    background: rgba(0, 0, 0, 0.06); color: #333;
+    font-weight: 600;
+  }
+
+  .slider__arrow {
+    position: absolute; top: 50%; transform: translateY(-50%); z-index: 3;
+    width: 36px; height: 36px; display: grid; place-items: center;
+    border: none; border-radius: 50%; cursor: pointer;
+    background: rgba(255, 255, 255, 0.95); color: #333;
+    font-size: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    opacity: 0; transition: opacity 0.2s, background 0.2s;
+  }
+  .slider__arrow:hover { background: #fff; }
+  .slider__arrow--prev { left: 12px; }
+  .slider__arrow--next { right: 12px; }
+  .card:hover .slider__arrow, .slider__arrow:focus-visible { opacity: 1; }
+
+  .slider__dots {
+    position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
+    z-index: 3; display: flex; gap: 6px;
+  }
+  .dot {
+    width: 8px; height: 8px; padding: 0; border: none; border-radius: 50%;
+    background: rgba(0, 0, 0, 0.15); cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .dot.is-active { background: var(--green); transform: scale(1.3); }
+
+  .slider__unit {
+    position: absolute; top: 14px; right: 14px; z-index: 3;
+    padding: 5px 14px; border-radius: 999px; font-size: 12px; font-weight: 700;
+    background: var(--surface); color: var(--green);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border: 1px solid var(--border);
+  }
+
+  /* Тело карточки */
+  .card__body {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 24px 20px 36px; text-align: center;
+    flex: 1;
+  }
+  .card__name {
+    font-size: 19px; font-weight: 800; line-height: 1.3;
+    color: #333; margin-bottom: 12px;
+  }
+  .card__divider {
+    width: 80px; height: 1px; background: var(--border);
+    margin-bottom: 12px;
+  }
+  .card__cat {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--green);
+    margin-bottom: 8px;
+  }
+  .card__asm {
+    font-size: 13px; color: var(--muted); line-height: 1.5;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Empty State */
+  .empty {
+    grid-column: 1 / -1; text-align: center; padding: 60px 20px;
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+    color: var(--muted); font-size: 15px;
+  }
+  .empty__icon { font-size: 48px; }
+
+  /* ---------- Модальное окно ---------- */
+  .modal {
+    position: fixed; inset: 0; z-index: 70;
+    display: grid; place-items: center; padding: 20px;
+    background: rgba(20, 30, 20, 0.6);
+    backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  .modal.is-open { opacity: 1; pointer-events: auto; }
+  .modal__card {
+    position: relative;
+    display: grid; grid-template-columns: 1fr 1.05fr;
+    width: 100%; max-width: 900px; max-height: 90vh; overflow: auto;
+    background: var(--surface); border-radius: 24px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+    transform: scale(0.95) translateY(20px); transition: transform 0.3s;
+  }
+  .modal.is-open .modal__card { transform: scale(1) translateY(0); }
+
+  .m-close {
+    position: absolute; top: 16px; right: 16px; z-index: 6;
+    width: 36px; height: 36px; border-radius: 50%; border: none;
+    background: #fff; color: #333; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    font-size: 16px; cursor: pointer; display: grid; place-items: center;
+    transition: transform 0.2s;
+  }
+  .m-close:hover { transform: rotate(90deg); }
+
+  .m-media { position: relative; min-height: 350px; background: #ffffff; }
+  .slider--lg { height: 100%; aspect-ratio: auto; border-radius: 24px 0 0 24px; }
+  .slider--lg .slide__emoji { font-size: 140px; }
+
+  .m-body { padding: 32px; display: flex; flex-direction: column; gap: 16px; }
+  .m-body h2 { font-size: 26px; font-weight: 800; color: #1a261c; line-height: 1.3; }
+  .m-desc { font-size: 14px; line-height: 1.6; color: var(--muted); }
+
+  .specs { display: grid; gap: 10px; margin-top: 4px; }
+  .specs div {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+    padding: 12px 16px; border-radius: 12px; background: #f7faf7;
+    font-size: 14px;
+  }
+  .specs span { color: var(--muted); font-weight: 600; flex: none; }
+  .specs b { font-weight: 700; text-align: right; line-height: 1.4; color: #333; }
+
+  .m-title {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--muted); font-weight: 700; margin-top: 8px;
+  }
+  .m-note {
+    font-size: 12px; line-height: 1.6; color: var(--green);
+    padding: 14px 16px; border-radius: 12px;
+    background: #f0f7f0; border: 1px dashed #c8e0c8;
+    margin-top: 8px; font-weight: 500;
+  }
+
+  /* Адаптив */
+  @media (max-width: 800px) {
+    .hero { padding: 60px 16px 80px; }
+    .hero__search input { padding: 16px 24px 16px 48px; font-size: 15px; }
+    .hero__search-icon { left: 18px; font-size: 16px; }
+    .hero__search-btn { display: none; }
+    .toolbar { flex-direction: column; align-items: stretch; border-radius: 20px; }
+    .chips { justify-content: center; }
+    .sort { width: 100%; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+    .modal__card { grid-template-columns: 1fr; }
+    .m-media { min-height: 240px; }
+    .slider--lg { border-radius: 24px 24px 0 0; }
+    .slider--lg .slide__emoji { font-size: 90px; }
+    .m-body { padding: 24px; }
+  }
+  @media (max-width: 500px) {
+    .header__inner { flex-direction: column; gap: 10px; }
+    .nav { width: 100%; justify-content: center; flex-wrap: wrap; gap: 16px; }
+    .grid { grid-template-columns: 1fr; }
+    .card { max-width: 340px; margin: 0 auto; width: 100%; }
+    .hero__bg-fruit { font-size: 80px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header__inner">
+    <a href="#" class="logo">
+      <span class="logo__icon">🌳</span>
+      <span class="logo__text">Фруктовая лавка</span>
+    </a>
+    <nav class="nav">
+      <a href="#" class="nav__link is-active">Главная</a>
+      <a href="#catalog" class="nav__link">Каталог</a>
+      <a href="#" class="nav__link">О компании</a>
+      <a href="#" class="nav__link">Контакты</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <!-- Фоновые фрукты для атмосферы -->
+  <span class="hero__bg-fruit hero__bg-fruit--1">🍎</span>
+  <span class="hero__bg-fruit hero__bg-fruit--2">🥝</span>
+  <span class="hero__bg-fruit hero__bg-fruit--3">🍋</span>
+  <span class="hero__bg-fruit hero__bg-fruit--4">🍇</span>
+
+  <div class="hero__inner">
+    <h1 class="hero__title">Свежие фрукты, овощи и зелень</h1>
+    <p class="hero__sub">Оптовые поставки для бизнеса и розничных сетей. Прямые контракты с производителями.</p>
+
+    <div class="hero__search">
+      <span class="hero__search-icon">🔍</span>
+      <input id="search" type="search" autocomplete="off"
+             placeholder="Найдите свой товар: яблоки, томаты, зелень…" aria-label="Поиск товаров">
+      <button class="hero__search-btn" type="button" data-scroll-catalog>Найти</button>
+    </div>
+  </div>
+</section>
+
+<main class="main" id="catalog">
+  <div class="catalog-head">
+    <h2>Каталог ассортимента</h2>
+    <p>Нажмите на карточку, чтобы увидеть вид ассортимента, единицу веса и производителя</p>
+  </div>
+
+  <div class="toolbar">
+    <div id="chips" class="chips" role="tablist" aria-label="Категории"></div>
+    <select id="sort" class="sort" aria-label="Сортировка">
+      <option value="name">По названию</option>
+      <option value="manufacturer">По производителю</option>
+      <option value="assortment">По виду ассортимента</option>
+    </select>
+  </div>
+
+  <div id="count" class="count"></div>
+  <div id="grid" class="grid"></div>
+</main>
+
+<div id="modal" class="modal" role="dialog" aria-modal="true" aria-label="Информация о товаре">
+  <div id="modalBody" class="modal__card"></div>
+</div>
+
+<script>
+  /* ================= Данные ================= */
+  const PRODUCTS = [
+    { id: 'apple-golden', name: 'Яблоки Голден', category: 'fruits',
+      assortment: 'Яблоко свежее, сорт высший, калибр 70–80 мм',
+      unit: 'кг', manufacturer: 'ООО «Сад Прикубанья», Краснодарский край',
+      desc: 'Свежие яблоки осеннего сбора. Плотная кожица, сочная мякоть, сладкий вкус с лёгкой кислинкой. Хранятся до 5 месяцев в холодильнике.',
+      images: [
+        { emoji: '🍎', c1: '#c9d94a', c2: '#6f8517', label: 'Плоды' },
+        { emoji: '🔍', c1: '#dbe96b', c2: '#82991f', label: 'Крупный план' },
+        { emoji: '📦', c1: '#b3c33f', c2: '#5d7112', label: 'Ящики по 18 кг' },
+      ] },
+
+    { id: 'pear-conference', name: 'Груши Конференция', category: 'fruits',
+      assortment: 'Груша свежая, сорт Конференция, калибр 60–70 мм',
+      unit: 'кг', manufacturer: 'КФХ «Долина садов», Ставропольский край',
+      desc: 'Плоды удлинённой формы с плотной ароматной мякотью и высоким содержанием сахаров. Подходят для продажи в сетях и переработки.',
+      images: [
+        { emoji: '🍐', c1: '#bfd96b', c2: '#6e8a24', label: 'Плоды' },
+        { emoji: '🔍', c1: '#d2e88a', c2: '#7f9b30', label: 'Крупный план' },
+        { emoji: '📦', c1: '#a9c455', c2: '#5d7519', label: 'Ящики по 12 кг' },
+      ] },
+
+    { id: 'grape-kishmish', name: 'Виноград Кишмиш лучистый', category: 'fruits',
+      assortment: 'Виноград столовый, сорт Кишмиш лучистый, без косточки',
+      unit: 'кг', manufacturer: '«AgroFresh», Узбекистан',
+      desc: 'Крупные ягоды розового цвета, тонкая кожица и хрустящая мякоть. Без косточки, отличная лёжкость при транспортировке.',
+      images: [
+        { emoji: '🍇', c1: '#c07fc4', c2: '#63306b', label: 'Гроздь' },
+        { emoji: '🔍', c1: '#d49bd8', c2: '#743a7c', label: 'Крупный план' },
+        { emoji: '📦', c1: '#a966ae', c2: '#532858', label: 'Ящики по 8 кг' },
+      ] },
+
+    { id: 'orange-navelina', name: 'Апельсины Навелина', category: 'fruits',
+      assortment: 'Апельсин свежий, сорт Навелина, калибр 5–6',
+      unit: 'кг', manufacturer: '«Sun Citrus», Турция',
+      desc: 'Столовый сорт с ярко-оранжевой кожурой и легко отделяемой мякотью. Сладкий вкус, почти без кислоты, без косточек.',
+      images: [
+        { emoji: '🍊', c1: '#f7a93b', c2: '#c05c07', label: 'Плоды' },
+        { emoji: '🔍', c1: '#ffc163', c2: '#d1710c', label: 'Крупный план' },
+        { emoji: '📦', c1: '#e89628', c2: '#a94f05', label: 'Ящики по 15 кг' },
+      ] },
+
+    { id: 'mandarin-clementine', name: 'Мандарины Клементин', category: 'fruits',
+      assortment: 'Мандарин свежий, сорт Клементин, калибр 1–2',
+      unit: 'кг', manufacturer: '«Atlas Fruits», Марокко',
+      desc: 'Тонкая кожура, сочная сладкая мякоть, лёгкий цитрусовый аромат. Популярный сезонный сорт для розницы.',
+      images: [
+        { emoji: '🍊', c1: '#ffa94d', c2: '#cf5f0b', label: 'Плоды' },
+        { emoji: '🔍', c1: '#ffbf70', c2: '#dd7018', label: 'Крупный план' },
+        { emoji: '📦', c1: '#f0932f', c2: '#b45206', label: 'Ящики по 10 кг' },
+      ] },
+
+    { id: 'banana-cavendish', name: 'Бананы Кавендиш', category: 'fruits',
+      assortment: 'Банан свежий, сорт Кавендиш, 2 класс, калибр 18–20 см',
+      unit: 'кг', manufacturer: '«EcuadorBanana», Эквадор',
+      desc: 'Плоды высокой степени зрелости, поступают в «зелёном» виде и дозариваются в камерах. Стабильные поставки круглый год.',
+      images: [
+        { emoji: '🍌', c1: '#f3da52', c2: '#b39412', label: 'Плоды' },
+        { emoji: '🔍', c1: '#fbe97c', c2: '#c4a41f', label: 'Крупный план' },
+        { emoji: '📦', c1: '#e4c93c', c2: '#a1830e', label: 'Короба по 18 кг' },
+      ] },
+
+    { id: 'peach-south', name: 'Персики', category: 'fruits',
+      assortment: 'Персик свежий, калибр 60+, сорт свободный',
+      unit: 'кг', manufacturer: 'КФХ «Южные сады», Республика Дагестан',
+      desc: 'Крупные плоды с бархатистой кожицей и отделяющейся косточкой. Сочная мякоть с насыщенным ароматом, сбор в сезон.',
+      images: [
+        { emoji: '🍑', c1: '#ffa07a', c2: '#c24a1e', label: 'Плоды' },
+        { emoji: '🔍', c1: '#ffb894', c2: '#d15b2c', label: 'Крупный план' },
+        { emoji: '📦', c1: '#f08e63', c2: '#ad3f17', label: 'Ящики по 8 кг' },
+      ] },
+
+    { id: 'tomato-bychye', name: 'Томаты «Бычье сердце»', category: 'vegetables',
+      assortment: 'Томат свежий, сорт Бычье сердце, калибр 80+',
+      unit: 'кг', manufacturer: 'ТК «Тепличный», Московская область',
+      desc: 'Крупноплодный салатный томат с плотной мякотью и насыщенным вкусом. Выращен в теплице, сбор ежедневный.',
+      images: [
+        { emoji: '🍅', c1: '#ef5b4c', c2: '#94180f', label: 'Плоды' },
+        { emoji: '🔍', c1: '#ff7b6b', c2: '#ab2217', label: 'Крупный план' },
+        { emoji: '📦', c1: '#dc4638', c2: '#81120a', label: 'Ящики по 10 кг' },
+      ] },
+
+    { id: 'cucumber-smooth', name: 'Огурцы гладкие', category: 'vegetables',
+      assortment: 'Огурец свежий, калибр 12–14 см, сорт среднеплодный',
+      unit: 'кг', manufacturer: 'ТК «Овощной дом», Липецкая область',
+      desc: 'Тонкая кожица, хрустящая мякоть без горечи. Круглогодичное выращивание в теплицах, стабильная калибровка.',
+      images: [
+        { emoji: '🥒', c1: '#79c65c', c2: '#2f7018', label: 'Плоды' },
+        { emoji: '🔍', c1: '#95d97a', c2: '#3d8a20', label: 'Крупный план' },
+        { emoji: '📦', c1: '#69b64c', c2: '#286213', label: 'Ящики по 12 кг' },
+      ] },
+
+    { id: 'potato-gala', name: 'Картофель Гала', category: 'vegetables',
+      assortment: 'Картофель продовольственный, сорт Гала, калибр 45+',
+      unit: 'кг', manufacturer: 'Агрохолдинг «Полевое», Брянская область',
+      desc: 'Раннеспелый столовый сорт с гладкими жёлтыми клубнями и отличными вкусовыми качествами. Хорошо хранится.',
+      images: [
+        { emoji: '🥔', c1: '#d9b26a', c2: '#8a6220', label: 'Клубни' },
+        { emoji: '🔍', c1: '#e8c88c', c2: '#9c7430', label: 'Крупный план' },
+        { emoji: '📦', c1: '#c8a05a', c2: '#785318', label: 'Сетки по 25 кг' },
+      ] },
+
+    { id: 'carrot-nantes', name: 'Морковь Нантская', category: 'vegetables',
+      assortment: 'Морковь столовая, сорт Нантская 4, калибр 4–6 см',
+      unit: 'кг', manufacturer: 'КФХ «Корнеплод», Рязанская область',
+      desc: 'Корнеплоды цилиндрической формы с яркой оранжевой мякотью. Высокое содержание каротина, подходит для фасовки.',
+      images: [
+        { emoji: '🥕', c1: '#f7a13c', c2: '#b35d08', label: 'Корнеплоды' },
+        { emoji: '🔍', c1: '#ffbb68', c2: '#c46d10', label: 'Крупный план' },
+        { emoji: '📦', c1: '#e58f28', c2: '#9e4f05', label: 'Сетки по 20 кг' },
+      ] },
+
+    { id: 'onion-stuttgarten', name: 'Лук репчатый Штутгартен', category: 'vegetables',
+      assortment: 'Лук репчатый, сорт Штутгартен ризен, калибр 60–80 мм',
+      unit: 'кг', manufacturer: 'ООО «АгроЛук», Волгоградская область',
+      desc: 'Плотные луковицы с сухими золотистыми чешуями и острым вкусом. Высокая лёжкость до 8 месяцев.',
+      images: [
+        { emoji: '🧅', c1: '#e3b487', c2: '#96602f', label: 'Луковицы' },
+        { emoji: '🔍', c1: '#f0c9a0', c2: '#a8703c', label: 'Крупный план' },
+        { emoji: '📦', c1: '#d1a171', c2: '#845026', label: 'Сетки по 25 кг' },
+      ] },
+
+    { id: 'pepper-bell', name: 'Перец болгарский', category: 'vegetables',
+      assortment: 'Перец сладкий, калибр 80–100 мм, цвет в ассортименте',
+      unit: 'кг', manufacturer: 'ТК «ЮгОвощ», Краснодарский край',
+      desc: 'Толстостенный перец с сочной мякотью и выраженным сладким вкусом. Поставка красного, жёлтого и зелёного цвета.',
+      images: [
+        { emoji: '🫑', c1: '#6cc24a', c2: '#2b7317', label: 'Плоды' },
+        { emoji: '🔍', c1: '#8fd96c', c2: '#398b20', label: 'Крупный план' },
+        { emoji: '📦', c1: '#5cb23c', c2: '#236210', label: 'Ящики по 8 кг' },
+      ] },
+
+    { id: 'beet-bordo', name: 'Свёкла Бордо', category: 'vegetables',
+      assortment: 'Свёкла столовая, сорт Бордо 237, калибр 5–8 см',
+      unit: 'кг', manufacturer: 'КФХ «Корнеплод», Рязанская область',
+      desc: 'Округлые корнеплоды с тёмно-бордовой мякотью без грубых волокон. Устойчива к хранению и транспортировке.',
+      images: [
+        { emoji: '🍠', c1: '#b2508c', c2: '#5d1a44', label: 'Корнеплоды' },
+        { emoji: '🔍', c1: '#c96fa5', c2: '#6f2453', label: 'Крупный план' },
+        { emoji: '📦', c1: '#9d3f79', c2: '#4e1338', label: 'Сетки по 20 кг' },
+      ] },
+
+    { id: 'eggplant', name: 'Баклажаны', category: 'vegetables',
+      assortment: 'Баклажан свежий, калибр 12–15 см, сорт классический',
+      unit: 'кг', manufacturer: 'ТК «ЮгОвощ», Краснодарский край',
+      desc: 'Плоды с глянцевой тёмно-фиолетовой кожицей и светлой мякотью без горечи. Сбор в стадии технической спелости.',
+      images: [
+        { emoji: '🍆', c1: '#8b5fbf', c2: '#3d2066', label: 'Плоды' },
+        { emoji: '🔍', c1: '#a67dd6', c2: '#4b2a7a', label: 'Крупный план' },
+        { emoji: '📦', c1: '#7a4fae', c2: '#331a58', label: 'Ящики по 10 кг' },
+      ] },
+
+    { id: 'dill', name: 'Укроп', category: 'greens',
+      assortment: 'Укроп свежий, срезка, пучок ~100 г',
+      unit: 'кг', manufacturer: 'ТК «Зелёная линия», Московская область',
+      desc: 'Свежая срезка с ароматной зеленью и тонким стеблем. Поставка в пучках, охлаждение после сбора.',
+      images: [
+        { emoji: '🌿', c1: '#6fbf5a', c2: '#276b18', label: 'Срезка' },
+        { emoji: '🔍', c1: '#8dd976', c2: '#338520', label: 'Крупный план' },
+        { emoji: '📦', c1: '#5fae4a', c2: '#1f5c12', label: 'Пучки в коробах' },
+      ] },
+
+    { id: 'parsley', name: 'Петрушка кудрявая', category: 'greens',
+      assortment: 'Петрушка листовая кудрявая, срезка',
+      unit: 'кг', manufacturer: 'ТК «Зелёная линия», Московская область',
+      desc: 'Кудрявые листья с ярким пряным ароматом. Используется в кулинарии и для оформления блюд.',
+      images: [
+        { emoji: '🌿', c1: '#4f9e42', c2: '#1c4d14', label: 'Срезка' },
+        { emoji: '🔍', c1: '#6cbc5c', c2: '#276820', label: 'Крупный план' },
+        { emoji: '📦', c1: '#438c38', c2: '#174010', label: 'Пучки в коробах' },
+      ] },
+
+    { id: 'cilantro', name: 'Кинза', category: 'greens',
+      assortment: 'Кориандр свежий (кинза), срезка',
+      unit: 'кг', manufacturer: '«GreenFarm», Краснодарский край',
+      desc: 'Молодые листья кориандра с характерным пряным вкусом. Сбор в фазе 4–5 настоящих листьев.',
+      images: [
+        { emoji: '🌱', c1: '#7fc96e', c2: '#2e7320', label: 'Срезка' },
+        { emoji: '🔍', c1: '#9bdd8c', c2: '#3b8c2a', label: 'Крупный план' },
+        { emoji: '📦', c1: '#6eb95e', c2: '#26631a', label: 'Пучки в коробах' },
+      ] },
+
+    { id: 'basil-green', name: 'Базилик зелёный', category: 'greens',
+      assortment: 'Базилик зелёный, срезка, пучок ~80 г',
+      unit: 'кг', manufacturer: '«GreenFarm», Краснодарский край',
+      desc: 'Нежные листья с выраженным ароматом и лёгкой сладостью. Требует бережной транспортировки при +4 °C.',
+      images: [
+        { emoji: '🍃', c1: '#6cc46c', c2: '#1f6b26', label: 'Срезка' },
+        { emoji: '🔍', c1: '#8bda8b', c2: '#2a7d31', label: 'Крупный план' },
+        { emoji: '📦', c1: '#5bb35b', c2: '#185a1f', label: 'Пучки в коробах' },
+      ] },
+
+    { id: 'lettuce-iceberg', name: 'Салат Айсберг', category: 'greens',
+      assortment: 'Салат кочанный Айсберг, кочан 400–600 г',
+      unit: 'кг', manufacturer: 'ТК «Зелёная линия», Московская область',
+      desc: 'Плотный хрустящий кочан с сочными светло-зелёными листьями. Хорошо переносит перевозку и хранение.',
+      images: [
+        { emoji: '🥬', c1: '#a5d97a', c2: '#4d8a24', label: 'Кочан' },
+        { emoji: '🔍', c1: '#bfe89b', c2: '#5fa030', label: 'Крупный план' },
+        { emoji: '📦', c1: '#93c968', c2: '#427c1c', label: 'Короба по 10 кг' },
+      ] },
+
+    { id: 'arugula', name: 'Руккола', category: 'greens',
+      assortment: 'Руккола свежая, срезка, лист 10–15 см',
+      unit: 'кг', manufacturer: '«GreenFarm», Краснодарский край',
+      desc: 'Пряная зелень с орехово-горчичным вкусом. Поставка охлаждённой, срок хранения до 5 суток.',
+      images: [
+        { emoji: '🌱', c1: '#5cae5c', c2: '#1b5a1b', label: 'Срезка' },
+        { emoji: '🔍', c1: '#7dc97d', c2: '#256b25', label: 'Крупный план' },
+        { emoji: '📦', c1: '#4c9c4c', c2: '#144a14', label: 'Пакеты в коробах' },
+      ] },
+
+    { id: 'green-onion', name: 'Лук зелёный', category: 'greens',
+      assortment: 'Лук на перо, срезка, перо 25–30 см',
+      unit: 'кг', manufacturer: 'ТК «Зелёная линия», Московская область',
+      desc: 'Сочное зелёное перо с мягким вкусом. Выращивается в теплице, срезка под заказ с утра.',
+      images: [
+        { emoji: '🌿', c1: '#7fcf6b', c2: '#2a7a1c', label: 'Перо' },
+        { emoji: '🔍', c1: '#9ce08a', c2: '#379426', label: 'Крупный план' },
+        { emoji: '📦', c1: '#6ebd5a', c2: '#226a16', label: 'Пучки в коробах' },
+      ] },
+
+    { id: 'spinach', name: 'Шпинат', category: 'greens',
+      assortment: 'Шпинат свежий, срезка, лист 8–12 см',
+      unit: 'кг', manufacturer: '«GreenFarm», Краснодарский край',
+      desc: 'Молодые листья шпината с нежным вкусом и высоким содержанием железа. Поставка в охлаждённом виде.',
+      images: [
+        { emoji: '🍃', c1: '#4f9e5c', c2: '#164d1f', label: 'Листья' },
+        { emoji: '🔍', c1: '#6cbc7a', c2: '#1f6829', label: 'Крупный план' },
+        { emoji: '📦', c1: '#418c4e', c2: '#113f19', label: 'Пакеты в коробах' },
+      ] },
+  ];
+
+  const CATEGORIES = [
+    { id: 'all', name: 'Все' },
+    { id: 'fruits', name: 'Фрукты' },
+    { id: 'vegetables', name: 'Овощи' },
+    { id: 'greens', name: 'Зелень' },
+  ];
+  const CAT_NAME = Object.fromEntries(CATEGORIES.map(c => [c.id, c.name]));
+
+  /* ================= Утилиты ================= */
+  const state = { query: '', category: 'all', sort: 'name' };
+  let currentProduct = null;
+  let swipeGuard = false;
+  let pointerStart = null;
+
+  const $ = s => document.querySelector(s);
+
+  function plural(n, forms) {
+    const a = n % 10, b = n % 100;
+    if (a === 1 && b !== 11) return forms[0];
+    if (a >= 2 && a <= 4 && (b < 10 || b >= 20)) return forms[1];
+    return forms[2];
+  }
+
+  const els = {
+    grid: $('#grid'), count: $('#count'), search: $('#search'),
+    chips: $('#chips'), sort: $('#sort'), modal: $('#modal'),
+    modalBody: $('#modalBody'), catalog: $('#catalog'),
+  };
+
+  /* ================= Слайд-шоу ================= */
+  function slideHTML(im) {
+    return `<div class="slide" style="--c1:${im.c1};--c2:${im.c2}">
+      <span class="slide__emoji">${im.emoji}</span>
+      <span class="slide__label">${im.label}</span>
+    </div>`;
+  }
+  function dotsHTML(images) {
+    return images.map((_, i) =>
+      `<button class="dot${i === 0 ? ' is-active' : ''}" data-dot="${i}" type="button"
+       aria-label="Фото ${i + 1}"></button>`).join('');
+  }
+  function sliderHTML(p, big) {
+    const many = p.images.length > 1;
+    return `<div class="slider${big ? ' slider--lg' : ''}" data-slider
+                 data-count="${p.images.length}" data-index="0">
+      <div class="slider__track" data-track>${p.images.map(slideHTML).join('')}</div>
+      ${many ? `
+        <button class="slider__arrow slider__arrow--prev" data-slide="-1" type="button" aria-label="Предыдущее фото">‹</button>
+        <button class="slider__arrow slider__arrow--next" data-slide="1" type="button" aria-label="Следующее фото">›</button>
+        <div class="slider__dots">${dotsHTML(p.images)}</div>` : ''}
+      <span class="slider__unit">Ед. изм.: ${p.unit}</span>
+    </div>`;
+  }
+
+  function goSlide(slider, index) {
+    const count = Number(slider.dataset.count);
+    const i = ((index % count) + count) % count;
+    slider.dataset.index = i;
+    slider.querySelector('[data-track]').style.transform = `translateX(-${i * 100}%)`;
+    slider.querySelectorAll('.dot').forEach((d, k) => d.classList.toggle('is-active', k === i));
+  }
+  function shiftSlide(slider, dir) {
+    goSlide(slider, (Number(slider.dataset.index) || 0) + dir);
+  }
+  function handleSliderClick(e) {
+    const slider = e.target.closest('[data-slider]');
+    if (!slider) return false;
+    const arrow = e.target.closest('[data-slide]');
+    if (arrow) { e.stopPropagation(); shiftSlide(slider, Number(arrow.dataset.slide)); return true; }
+    const dot = e.target.closest('[data-dot]');
+    if (dot) { e.stopPropagation(); goSlide(slider, Number(dot.dataset.dot)); return true; }
+    return false;
+  }
+
+  /* ================= Каталог ================= */
+  function getVisible() {
+    const q = state.query.trim().toLowerCase();
+    const list = PRODUCTS.filter(p => {
+      const byCat = state.category === 'all' || p.category === state.category;
+      const byQuery = !q
+        || p.name.toLowerCase().includes(q)
+        || p.assortment.toLowerCase().includes(q)
+        || p.manufacturer.toLowerCase().includes(q)
+        || CAT_NAME[p.category].toLowerCase().includes(q);
+      return byCat && byQuery;
+    });
+
+    if (state.sort === 'name') list.sort((a, b) => a.name.localeCompare(b.name, 'ru'));
+    if (state.sort === 'manufacturer') list.sort((a, b) => a.manufacturer.localeCompare(b.manufacturer, 'ru'));
+    if (state.sort === 'assortment') list.sort((a, b) => a.assortment.localeCompare(b.assortment, 'ru'));
+    return list;
+  }
+
+  function cardHTML(p) {
+    // Добавлен класс card--category для градиентной полосы сверху
+    return `<article class="card card--${p.category}" data-id="${p.id}" tabindex="0" role="button"
+                     aria-label="${p.name} — подробнее о товаре">
+      ${sliderHTML(p, false)}
+      <div class="card__body">
+        <span class="card__cat">${CAT_NAME[p.category]}</span>
+        <h3 class="card__name">${p.name}</h3>
+        <div class="card__divider"></div>
+        <p class="card__asm">${p.assortment}</p>
+      </div>
+    </article>`;
+  }
+
+  function renderCatalog() {
+    const items = getVisible();
+    const q = state.query.trim();
+
+    els.count.textContent = q
+      ? `По запросу «${q}» — ${items.length} ${plural(items.length, ['позиция', 'позиции', 'позиций'])}`
+      : `${items.length} ${plural(items.length, ['позиция', 'позиции', 'позиций'])} в каталоге`;
+
+    if (!items.length) {
+      els.grid.innerHTML = `<div class="empty">
+        <div class="empty__icon">🔍</div>
+        <p>По вашему запросу ничего не нашлось</p>
+        <button class="btn" data-reset type="button" style="padding: 10px 20px; border-radius: 999px; background: var(--green); color: white; border: none; cursor: pointer;">Сбросить фильтры</button>
+      </div>`;
+      return;
+    }
+    els.grid.innerHTML = items.map(cardHTML).join('');
+  }
+
+  function renderChips() {
+    els.chips.innerHTML = CATEGORIES.map(c => `
+      <button class="chip${c.id === state.category ? ' is-active' : ''}"
+              data-cat="${c.id}" type="button" role="tab"
+              aria-selected="${c.id === state.category}">${c.name}</button>`).join('');
+  }
+
+  /* ================= Карточка товара ================= */
+  function openProduct(id) {
+    const p = PRODUCTS.find(x => x.id === id);
+    if (!p) return;
+    currentProduct = p;
+
+    els.modalBody.innerHTML = `
+      <div class="m-media">${sliderHTML(p, true)}</div>
+      <button class="m-close" data-close type="button" aria-label="Закрыть">✕</button>
+      <div class="m-body">
+        <span class="card__cat">${CAT_NAME[p.category]}</span>
+        <h2>${p.name}</h2>
+
+        <h3 class="m-title">Характеристики</h3>
+        <div class="specs">
+          <div><span>Вид ассортимента</span><b>${p.assortment}</b></div>
+          <div><span>Единица измерения веса</span><b>${p.unit}</b></div>
+          <div><span>Производитель</span><b>${p.manufacturer}</b></div>
+        </div>
+
+        <h3 class="m-title">Описание</h3>
+        <p class="m-desc">${p.desc}</p>
+
+        <p class="m-note">Объёмы поставки, минимальная партия и график отгрузок уточняются у менеджера.</p>
+      </div>`;
+
+    els.modal.classList.add('is-open');
+    document.body.classList.add('is-locked');
+  }
+
+  function closeModal() {
+    els.modal.classList.remove('is-open');
+    document.body.classList.remove('is-locked');
+    currentProduct = null;
+  }
+
+  /* ================= Скролл к каталогу ================= */
+  function scrollToCatalog() {
+    els.catalog.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /* ================= События ================= */
+  els.search.addEventListener('input', e => {
+    state.query = e.target.value;
+    renderCatalog();
+  });
+  els.search.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      scrollToCatalog();
+    }
+  });
+
+  document.querySelectorAll('[data-scroll-catalog]').forEach(btn => {
+    btn.addEventListener('click', scrollToCatalog);
+  });
+
+  els.chips.addEventListener('click', e => {
+    const chip = e.target.closest('[data-cat]');
+    if (!chip) return;
+    state.category = chip.dataset.cat;
+    renderChips();
+    renderCatalog();
+  });
+
+  els.sort.addEventListener('change', e => {
+    state.sort = e.target.value;
+    renderCatalog();
+  });
+
+  els.grid.addEventListener('click', e => {
+    if (e.target.closest('[data-reset]')) {
+      state.query = ''; state.category = 'all'; state.sort = 'name';
+      els.search.value = ''; els.sort.value = 'name';
+      renderChips(); renderCatalog();
+      return;
+    }
+    const card = e.target.closest('.card');
+    if (!card) return;
+    if (handleSliderClick(e)) return;
+    if (swipeGuard) return;
+    openProduct(card.dataset.id);
+  });
+
+  els.grid.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const card = e.target.closest('.card');
+    if (!card) return;
+    e.preventDefault();
+    openProduct(card.dataset.id);
+  });
+
+  els.grid.addEventListener('pointerdown', e => {
+    const slider = e.target.closest('[data-slider]');
+    if (!slider) return;
+    pointerStart = { x: e.clientX, slider };
+  });
+  els.grid.addEventListener('pointerup', e => {
+    if (!pointerStart) return;
+    const dx = e.clientX - pointerStart.x;
+    if (Math.abs(dx) > 40 && Number(pointerStart.slider.dataset.count) > 1) {
+      shiftSlide(pointerStart.slider, dx < 0 ? 1 : -1);
+      swipeGuard = true;
+      setTimeout(() => { swipeGuard = false; }, 60);
+    }
+    pointerStart = null;
+  });
+  els.grid.addEventListener('pointercancel', () => { pointerStart = null; });
+
+  els.modal.addEventListener('click', e => {
+    if (e.target === els.modal || e.target.closest('[data-close]')) { closeModal(); return; }
+    handleSliderClick(e);
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && els.modal.classList.contains('is-open')) closeModal();
+  });
+
+  /* ================= Старт ================= */
+  renderChips();
+  renderCatalog();
+</script>
+</body>
+</html>
