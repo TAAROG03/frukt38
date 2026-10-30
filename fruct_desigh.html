@@ -530,16 +530,21 @@
         const manufacturer = row[5] || '';
         const desc = row[6] || '';
         
-        // Собираем картинки (эмодзи из колонок H, I, J)
-        const imgEmojis = [row[7], row[8], row[9]].filter(Boolean);
-        const colors = DEFAULT_COLORS[cat] || DEFAULT_COLORS.fruits;
-        
-        const images = imgEmojis.length ? imgEmojis.map((emoji, index) => ({
-          emoji: emoji,
-          c1: colors[0],
-          c2: colors[1],
-          label: `Фото ${index + 1}`
-        })) : [{ emoji: '📦', c1: '#ccc', c2: '#999', label: 'Нет фото' }];
+       // Собираем картинки (эмодзи или ссылки из колонок H, I, J)
+const rawImgs = [row[7], row[8], row[9]].filter(Boolean);
+const colors = DEFAULT_COLORS[cat] || DEFAULT_COLORS.fruits;
+
+const images = rawImgs.length ? rawImgs.map((val, index) => {
+  const isUrl = val.trim().startsWith('http');
+  return {
+    // Если это ссылка — сохраняем в url, иначе в emoji
+    url: isUrl ? val.trim() : null,
+    emoji: !isUrl ? val : null,
+    c1: colors[0],
+    c2: colors[1],
+    label: `Фото ${index + 1}`
+  };
+}) : [{ emoji: '📦', c1: '#ccc', c2: '#999', label: 'Нет фото' }];
 
         return { id, name, category: cat, assortment, unit, manufacturer, desc, images };
       }).filter(p => p.name !== ''); // Отсеиваем пустые строки
@@ -557,10 +562,17 @@
 
   /* ================= Слайд-шоу ================= */
   function slideHTML(im) {
+  // Если это ссылка (начинается с http) — выводим картинку
+  if (im.url && im.url.startsWith('http')) {
     return `<div class="slide" style="--c1:${im.c1};--c2:${im.c2}">
-      <span class="slide__emoji">${im.emoji}</span>
+      <img src="${im.url}" alt="Фото товара" style="width:100%; height:100%; object-fit:cover; border-radius:12px 12px 0 0;" loading="lazy">
     </div>`;
   }
+  // Иначе выводим эмодзи (как было)
+  return `<div class="slide" style="--c1:${im.c1};--c2:${im.c2}">
+    <span class="slide__emoji">${im.emoji}</span>
+  </div>`;
+}
   function dotsHTML(images) {
     return images.map((_, i) =>
       `<button class="dot${i === 0 ? ' is-active' : ''}" data-dot="${i}" type="button"
