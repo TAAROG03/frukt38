@@ -438,9 +438,8 @@
 
 <script>
   /* ================= НАСТРОЙКА БАЗЫ ДАННЫХ ================= */
-  // 1. Опубликуйте Google Таблицу как CSV (Файл -> Поделиться -> Опубликовать в интернете -> CSV)
-  // 2. Вставьте ссылку сюда вместо моей (в кавычках):
-  const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT_ваша_ссылка_на_csv/pub?output=csv";
+  // Ссылка на вашу Google Таблицу (CSV)
+  const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSI-2eNw4zpBwxqnanfsdUJg2CEz5byueiWbJwJFwVMAPEUtLbqhddc-sgCbbvZJLq-vn3obqUqUurS/pub?output=csv";
   /* ========================================================= */
 
   // Дефолтные цвета для градиентов, если их нет в таблице
@@ -472,7 +471,6 @@
   };
 
   /* ================= ПАРСЕР CSV ================= */
-  // Эта функция превращает текст из таблицы в массив объектов
   function parseCSV(text) {
     const lines = [];
     let currentLine = [];
@@ -513,16 +511,6 @@
 
   /* ================= ЗАГРУЗКА ДАННЫХ ================= */
   async function loadData() {
-    if (GOOGLE_SHEET_CSV_URL.includes("ваша_ссылка")) {
-      // Если ссылка не изменена, показываем демо-товары
-      console.warn("Вставьте ссылку на вашу Google Таблицу в переменную GOOGLE_SHEET_CSV_URL!");
-      PRODUCTS = [
-        { id: 'demo-1', name: 'Это демо-товар', category: 'fruits', assortment: 'Замените ссылку в коде на вашу таблицу', unit: 'кг', manufacturer: 'Google Sheets', desc: 'Откройте код (index.html), найдите строку 236 и вставьте туда ссылку из Google Таблиц.', images: [{ emoji: '🍎', c1: '#ff416c', c2: '#ff4b2b', label: 'Фото 1' }] }
-      ];
-      renderCatalog();
-      return;
-    }
-
     try {
       const response = await fetch(GOOGLE_SHEET_CSV_URL);
       if (!response.ok) throw new Error('Ошибка сети');
