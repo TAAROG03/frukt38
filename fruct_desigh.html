@@ -63,7 +63,7 @@
   /* ---------- Hero ---------- */
   .hero {
     position: relative;
-    padding: 80px 20px 100px; /* Увеличены отступы, так как убрали баннеры */
+    padding: 80px 20px 100px;
     text-align: center;
     overflow: hidden;
     background:
@@ -181,7 +181,7 @@
   .card {
     display: flex; flex-direction: column; overflow: hidden;
     background: var(--surface);
-    border-radius: 16px 16px 56px 56px; /* Фирменное скругление */
+    border-radius: 16px 16px 56px 56px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
     cursor: pointer;
     position: relative;
@@ -191,7 +191,6 @@
     transform: translateY(-8px);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   }
-  /* Верхняя цветная полоса в зависимости от категории */
   .card::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px;
     z-index: 10;
@@ -217,7 +216,6 @@
     display: grid; place-items: center;
     background: #ffffff;
   }
-  /* Легкое цветное свечение на фоне вместо тяжелого градиента */
   .slide::after {
     content: ""; position: absolute; inset: 0;
     background: radial-gradient(circle at 50% 50%, var(--c1), transparent 70%);
@@ -230,13 +228,6 @@
   }
   .card:hover .slide__emoji { transform: scale(1.1) rotate(-3deg); }
   
-  .slide__label {
-    position: absolute; left: 14px; bottom: 14px; z-index: 2;
-    padding: 5px 12px; border-radius: 999px; font-size: 11px;
-    background: rgba(0, 0, 0, 0.06); color: #333;
-    font-weight: 600;
-  }
-
   .slider__arrow {
     position: absolute; top: 50%; transform: translateY(-50%); z-index: 3;
     width: 36px; height: 36px; display: grid; place-items: center;
@@ -294,7 +285,7 @@
     overflow: hidden;
   }
 
-  /* Empty State */
+  /* Empty State / Loading */
   .empty {
     grid-column: 1 / -1; text-align: center; padding: 60px 20px;
     display: flex; flex-direction: column; align-items: center; gap: 16px;
@@ -401,7 +392,6 @@
 </header>
 
 <section class="hero">
-  <!-- Фоновые фрукты для атмосферы -->
   <span class="hero__bg-fruit hero__bg-fruit--1">🍎</span>
   <span class="hero__bg-fruit hero__bg-fruit--2">🥝</span>
   <span class="hero__bg-fruit hero__bg-fruit--3">🍋</span>
@@ -436,7 +426,10 @@
   </div>
 
   <div id="count" class="count"></div>
-  <div id="grid" class="grid"></div>
+  <div id="grid" class="grid">
+    <!-- Здесь будет надпись "Загрузка..." пока данные едут с Google -->
+    <div class="empty"><div class="empty__icon">⏳</div><p>Загрузка каталога...</p></div>
+  </div>
 </main>
 
 <div id="modal" class="modal" role="dialog" aria-modal="true" aria-label="Информация о товаре">
@@ -444,248 +437,20 @@
 </div>
 
 <script>
-  /* ================= Данные ================= */
-  const PRODUCTS = [
-    { id: 'apple-golden', name: 'Яблоки Голден', category: 'fruits',
-      assortment: 'Яблоко свежее, сорт высший, калибр 70–80 мм',
-      unit: 'кг', manufacturer: 'ООО «Сад Прикубанья», Краснодарский край',
-      desc: 'Свежие яблоки осеннего сбора. Плотная кожица, сочная мякоть, сладкий вкус с лёгкой кислинкой. Хранятся до 5 месяцев в холодильнике.',
-      images: [
-        { emoji: '🍎', c1: '#c9d94a', c2: '#6f8517', label: 'Плоды' },
-        { emoji: '🔍', c1: '#dbe96b', c2: '#82991f', label: 'Крупный план' },
-        { emoji: '📦', c1: '#b3c33f', c2: '#5d7112', label: 'Ящики по 18 кг' },
-      ] },
+  /* ================= НАСТРОЙКА БАЗЫ ДАННЫХ ================= */
+  // 1. Опубликуйте Google Таблицу как CSV (Файл -> Поделиться -> Опубликовать в интернете -> CSV)
+  // 2. Вставьте ссылку сюда вместо моей (в кавычках):
+  const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT_ваша_ссылка_на_csv/pub?output=csv";
+  /* ========================================================= */
 
-    { id: 'pear-conference', name: 'Груши Конференция', category: 'fruits',
-      assortment: 'Груша свежая, сорт Конференция, калибр 60–70 мм',
-      unit: 'кг', manufacturer: 'КФХ «Долина садов», Ставропольский край',
-      desc: 'Плоды удлинённой формы с плотной ароматной мякотью и высоким содержанием сахаров. Подходят для продажи в сетях и переработки.',
-      images: [
-        { emoji: '🍐', c1: '#bfd96b', c2: '#6e8a24', label: 'Плоды' },
-        { emoji: '🔍', c1: '#d2e88a', c2: '#7f9b30', label: 'Крупный план' },
-        { emoji: '📦', c1: '#a9c455', c2: '#5d7519', label: 'Ящики по 12 кг' },
-      ] },
+  // Дефолтные цвета для градиентов, если их нет в таблице
+  const DEFAULT_COLORS = {
+    fruits: ['#ff416c', '#ff4b2b'],
+    vegetables: ['#f7971e', '#ffd200'],
+    greens: ['#56ab2f', '#a8e063']
+  };
 
-    { id: 'grape-kishmish', name: 'Виноград Кишмиш лучистый', category: 'fruits',
-      assortment: 'Виноград столовый, сорт Кишмиш лучистый, без косточки',
-      unit: 'кг', manufacturer: '«AgroFresh», Узбекистан',
-      desc: 'Крупные ягоды розового цвета, тонкая кожица и хрустящая мякоть. Без косточки, отличная лёжкость при транспортировке.',
-      images: [
-        { emoji: '🍇', c1: '#c07fc4', c2: '#63306b', label: 'Гроздь' },
-        { emoji: '🔍', c1: '#d49bd8', c2: '#743a7c', label: 'Крупный план' },
-        { emoji: '📦', c1: '#a966ae', c2: '#532858', label: 'Ящики по 8 кг' },
-      ] },
-
-    { id: 'orange-navelina', name: 'Апельсины Навелина', category: 'fruits',
-      assortment: 'Апельсин свежий, сорт Навелина, калибр 5–6',
-      unit: 'кг', manufacturer: '«Sun Citrus», Турция',
-      desc: 'Столовый сорт с ярко-оранжевой кожурой и легко отделяемой мякотью. Сладкий вкус, почти без кислоты, без косточек.',
-      images: [
-        { emoji: '🍊', c1: '#f7a93b', c2: '#c05c07', label: 'Плоды' },
-        { emoji: '🔍', c1: '#ffc163', c2: '#d1710c', label: 'Крупный план' },
-        { emoji: '📦', c1: '#e89628', c2: '#a94f05', label: 'Ящики по 15 кг' },
-      ] },
-
-    { id: 'mandarin-clementine', name: 'Мандарины Клементин', category: 'fruits',
-      assortment: 'Мандарин свежий, сорт Клементин, калибр 1–2',
-      unit: 'кг', manufacturer: '«Atlas Fruits», Марокко',
-      desc: 'Тонкая кожура, сочная сладкая мякоть, лёгкий цитрусовый аромат. Популярный сезонный сорт для розницы.',
-      images: [
-        { emoji: '🍊', c1: '#ffa94d', c2: '#cf5f0b', label: 'Плоды' },
-        { emoji: '🔍', c1: '#ffbf70', c2: '#dd7018', label: 'Крупный план' },
-        { emoji: '📦', c1: '#f0932f', c2: '#b45206', label: 'Ящики по 10 кг' },
-      ] },
-
-    { id: 'banana-cavendish', name: 'Бананы Кавендиш', category: 'fruits',
-      assortment: 'Банан свежий, сорт Кавендиш, 2 класс, калибр 18–20 см',
-      unit: 'кг', manufacturer: '«EcuadorBanana», Эквадор',
-      desc: 'Плоды высокой степени зрелости, поступают в «зелёном» виде и дозариваются в камерах. Стабильные поставки круглый год.',
-      images: [
-        { emoji: '🍌', c1: '#f3da52', c2: '#b39412', label: 'Плоды' },
-        { emoji: '🔍', c1: '#fbe97c', c2: '#c4a41f', label: 'Крупный план' },
-        { emoji: '📦', c1: '#e4c93c', c2: '#a1830e', label: 'Короба по 18 кг' },
-      ] },
-
-    { id: 'peach-south', name: 'Персики', category: 'fruits',
-      assortment: 'Персик свежий, калибр 60+, сорт свободный',
-      unit: 'кг', manufacturer: 'КФХ «Южные сады», Республика Дагестан',
-      desc: 'Крупные плоды с бархатистой кожицей и отделяющейся косточкой. Сочная мякоть с насыщенным ароматом, сбор в сезон.',
-      images: [
-        { emoji: '🍑', c1: '#ffa07a', c2: '#c24a1e', label: 'Плоды' },
-        { emoji: '🔍', c1: '#ffb894', c2: '#d15b2c', label: 'Крупный план' },
-        { emoji: '📦', c1: '#f08e63', c2: '#ad3f17', label: 'Ящики по 8 кг' },
-      ] },
-
-    { id: 'tomato-bychye', name: 'Томаты «Бычье сердце»', category: 'vegetables',
-      assortment: 'Томат свежий, сорт Бычье сердце, калибр 80+',
-      unit: 'кг', manufacturer: 'ТК «Тепличный», Московская область',
-      desc: 'Крупноплодный салатный томат с плотной мякотью и насыщенным вкусом. Выращен в теплице, сбор ежедневный.',
-      images: [
-        { emoji: '🍅', c1: '#ef5b4c', c2: '#94180f', label: 'Плоды' },
-        { emoji: '🔍', c1: '#ff7b6b', c2: '#ab2217', label: 'Крупный план' },
-        { emoji: '📦', c1: '#dc4638', c2: '#81120a', label: 'Ящики по 10 кг' },
-      ] },
-
-    { id: 'cucumber-smooth', name: 'Огурцы гладкие', category: 'vegetables',
-      assortment: 'Огурец свежий, калибр 12–14 см, сорт среднеплодный',
-      unit: 'кг', manufacturer: 'ТК «Овощной дом», Липецкая область',
-      desc: 'Тонкая кожица, хрустящая мякоть без горечи. Круглогодичное выращивание в теплицах, стабильная калибровка.',
-      images: [
-        { emoji: '🥒', c1: '#79c65c', c2: '#2f7018', label: 'Плоды' },
-        { emoji: '🔍', c1: '#95d97a', c2: '#3d8a20', label: 'Крупный план' },
-        { emoji: '📦', c1: '#69b64c', c2: '#286213', label: 'Ящики по 12 кг' },
-      ] },
-
-    { id: 'potato-gala', name: 'Картофель Гала', category: 'vegetables',
-      assortment: 'Картофель продовольственный, сорт Гала, калибр 45+',
-      unit: 'кг', manufacturer: 'Агрохолдинг «Полевое», Брянская область',
-      desc: 'Раннеспелый столовый сорт с гладкими жёлтыми клубнями и отличными вкусовыми качествами. Хорошо хранится.',
-      images: [
-        { emoji: '🥔', c1: '#d9b26a', c2: '#8a6220', label: 'Клубни' },
-        { emoji: '🔍', c1: '#e8c88c', c2: '#9c7430', label: 'Крупный план' },
-        { emoji: '📦', c1: '#c8a05a', c2: '#785318', label: 'Сетки по 25 кг' },
-      ] },
-
-    { id: 'carrot-nantes', name: 'Морковь Нантская', category: 'vegetables',
-      assortment: 'Морковь столовая, сорт Нантская 4, калибр 4–6 см',
-      unit: 'кг', manufacturer: 'КФХ «Корнеплод», Рязанская область',
-      desc: 'Корнеплоды цилиндрической формы с яркой оранжевой мякотью. Высокое содержание каротина, подходит для фасовки.',
-      images: [
-        { emoji: '🥕', c1: '#f7a13c', c2: '#b35d08', label: 'Корнеплоды' },
-        { emoji: '🔍', c1: '#ffbb68', c2: '#c46d10', label: 'Крупный план' },
-        { emoji: '📦', c1: '#e58f28', c2: '#9e4f05', label: 'Сетки по 20 кг' },
-      ] },
-
-    { id: 'onion-stuttgarten', name: 'Лук репчатый Штутгартен', category: 'vegetables',
-      assortment: 'Лук репчатый, сорт Штутгартен ризен, калибр 60–80 мм',
-      unit: 'кг', manufacturer: 'ООО «АгроЛук», Волгоградская область',
-      desc: 'Плотные луковицы с сухими золотистыми чешуями и острым вкусом. Высокая лёжкость до 8 месяцев.',
-      images: [
-        { emoji: '🧅', c1: '#e3b487', c2: '#96602f', label: 'Луковицы' },
-        { emoji: '🔍', c1: '#f0c9a0', c2: '#a8703c', label: 'Крупный план' },
-        { emoji: '📦', c1: '#d1a171', c2: '#845026', label: 'Сетки по 25 кг' },
-      ] },
-
-    { id: 'pepper-bell', name: 'Перец болгарский', category: 'vegetables',
-      assortment: 'Перец сладкий, калибр 80–100 мм, цвет в ассортименте',
-      unit: 'кг', manufacturer: 'ТК «ЮгОвощ», Краснодарский край',
-      desc: 'Толстостенный перец с сочной мякотью и выраженным сладким вкусом. Поставка красного, жёлтого и зелёного цвета.',
-      images: [
-        { emoji: '🫑', c1: '#6cc24a', c2: '#2b7317', label: 'Плоды' },
-        { emoji: '🔍', c1: '#8fd96c', c2: '#398b20', label: 'Крупный план' },
-        { emoji: '📦', c1: '#5cb23c', c2: '#236210', label: 'Ящики по 8 кг' },
-      ] },
-
-    { id: 'beet-bordo', name: 'Свёкла Бордо', category: 'vegetables',
-      assortment: 'Свёкла столовая, сорт Бордо 237, калибр 5–8 см',
-      unit: 'кг', manufacturer: 'КФХ «Корнеплод», Рязанская область',
-      desc: 'Округлые корнеплоды с тёмно-бордовой мякотью без грубых волокон. Устойчива к хранению и транспортировке.',
-      images: [
-        { emoji: '🍠', c1: '#b2508c', c2: '#5d1a44', label: 'Корнеплоды' },
-        { emoji: '🔍', c1: '#c96fa5', c2: '#6f2453', label: 'Крупный план' },
-        { emoji: '📦', c1: '#9d3f79', c2: '#4e1338', label: 'Сетки по 20 кг' },
-      ] },
-
-    { id: 'eggplant', name: 'Баклажаны', category: 'vegetables',
-      assortment: 'Баклажан свежий, калибр 12–15 см, сорт классический',
-      unit: 'кг', manufacturer: 'ТК «ЮгОвощ», Краснодарский край',
-      desc: 'Плоды с глянцевой тёмно-фиолетовой кожицей и светлой мякотью без горечи. Сбор в стадии технической спелости.',
-      images: [
-        { emoji: '🍆', c1: '#8b5fbf', c2: '#3d2066', label: 'Плоды' },
-        { emoji: '🔍', c1: '#a67dd6', c2: '#4b2a7a', label: 'Крупный план' },
-        { emoji: '📦', c1: '#7a4fae', c2: '#331a58', label: 'Ящики по 10 кг' },
-      ] },
-
-    { id: 'dill', name: 'Укроп', category: 'greens',
-      assortment: 'Укроп свежий, срезка, пучок ~100 г',
-      unit: 'кг', manufacturer: 'ТК «Зелёная линия», Московская область',
-      desc: 'Свежая срезка с ароматной зеленью и тонким стеблем. Поставка в пучках, охлаждение после сбора.',
-      images: [
-        { emoji: '🌿', c1: '#6fbf5a', c2: '#276b18', label: 'Срезка' },
-        { emoji: '🔍', c1: '#8dd976', c2: '#338520', label: 'Крупный план' },
-        { emoji: '📦', c1: '#5fae4a', c2: '#1f5c12', label: 'Пучки в коробах' },
-      ] },
-
-    { id: 'parsley', name: 'Петрушка кудрявая', category: 'greens',
-      assortment: 'Петрушка листовая кудрявая, срезка',
-      unit: 'кг', manufacturer: 'ТК «Зелёная линия», Московская область',
-      desc: 'Кудрявые листья с ярким пряным ароматом. Используется в кулинарии и для оформления блюд.',
-      images: [
-        { emoji: '🌿', c1: '#4f9e42', c2: '#1c4d14', label: 'Срезка' },
-        { emoji: '🔍', c1: '#6cbc5c', c2: '#276820', label: 'Крупный план' },
-        { emoji: '📦', c1: '#438c38', c2: '#174010', label: 'Пучки в коробах' },
-      ] },
-
-    { id: 'cilantro', name: 'Кинза', category: 'greens',
-      assortment: 'Кориандр свежий (кинза), срезка',
-      unit: 'кг', manufacturer: '«GreenFarm», Краснодарский край',
-      desc: 'Молодые листья кориандра с характерным пряным вкусом. Сбор в фазе 4–5 настоящих листьев.',
-      images: [
-        { emoji: '🌱', c1: '#7fc96e', c2: '#2e7320', label: 'Срезка' },
-        { emoji: '🔍', c1: '#9bdd8c', c2: '#3b8c2a', label: 'Крупный план' },
-        { emoji: '📦', c1: '#6eb95e', c2: '#26631a', label: 'Пучки в коробах' },
-      ] },
-
-    { id: 'basil-green', name: 'Базилик зелёный', category: 'greens',
-      assortment: 'Базилик зелёный, срезка, пучок ~80 г',
-      unit: 'кг', manufacturer: '«GreenFarm», Краснодарский край',
-      desc: 'Нежные листья с выраженным ароматом и лёгкой сладостью. Требует бережной транспортировки при +4 °C.',
-      images: [
-        { emoji: '🍃', c1: '#6cc46c', c2: '#1f6b26', label: 'Срезка' },
-        { emoji: '🔍', c1: '#8bda8b', c2: '#2a7d31', label: 'Крупный план' },
-        { emoji: '📦', c1: '#5bb35b', c2: '#185a1f', label: 'Пучки в коробах' },
-      ] },
-
-    { id: 'lettuce-iceberg', name: 'Салат Айсберг', category: 'greens',
-      assortment: 'Салат кочанный Айсберг, кочан 400–600 г',
-      unit: 'кг', manufacturer: 'ТК «Зелёная линия», Московская область',
-      desc: 'Плотный хрустящий кочан с сочными светло-зелёными листьями. Хорошо переносит перевозку и хранение.',
-      images: [
-        { emoji: '🥬', c1: '#a5d97a', c2: '#4d8a24', label: 'Кочан' },
-        { emoji: '🔍', c1: '#bfe89b', c2: '#5fa030', label: 'Крупный план' },
-        { emoji: '📦', c1: '#93c968', c2: '#427c1c', label: 'Короба по 10 кг' },
-      ] },
-
-    { id: 'arugula', name: 'Руккола', category: 'greens',
-      assortment: 'Руккола свежая, срезка, лист 10–15 см',
-      unit: 'кг', manufacturer: '«GreenFarm», Краснодарский край',
-      desc: 'Пряная зелень с орехово-горчичным вкусом. Поставка охлаждённой, срок хранения до 5 суток.',
-      images: [
-        { emoji: '🌱', c1: '#5cae5c', c2: '#1b5a1b', label: 'Срезка' },
-        { emoji: '🔍', c1: '#7dc97d', c2: '#256b25', label: 'Крупный план' },
-        { emoji: '📦', c1: '#4c9c4c', c2: '#144a14', label: 'Пакеты в коробах' },
-      ] },
-
-    { id: 'green-onion', name: 'Лук зелёный', category: 'greens',
-      assortment: 'Лук на перо, срезка, перо 25–30 см',
-      unit: 'кг', manufacturer: 'ТК «Зелёная линия», Московская область',
-      desc: 'Сочное зелёное перо с мягким вкусом. Выращивается в теплице, срезка под заказ с утра.',
-      images: [
-        { emoji: '🌿', c1: '#7fcf6b', c2: '#2a7a1c', label: 'Перо' },
-        { emoji: '🔍', c1: '#9ce08a', c2: '#379426', label: 'Крупный план' },
-        { emoji: '📦', c1: '#6ebd5a', c2: '#226a16', label: 'Пучки в коробах' },
-      ] },
-
-    { id: 'spinach', name: 'Шпинат', category: 'greens',
-      assortment: 'Шпинат свежий, срезка, лист 8–12 см',
-      unit: 'кг', manufacturer: '«GreenFarm», Краснодарский край',
-      desc: 'Молодые листья шпината с нежным вкусом и высоким содержанием железа. Поставка в охлаждённом виде.',
-      images: [
-        { emoji: '🍃', c1: '#4f9e5c', c2: '#164d1f', label: 'Листья' },
-        { emoji: '🔍', c1: '#6cbc7a', c2: '#1f6829', label: 'Крупный план' },
-        { emoji: '📦', c1: '#418c4e', c2: '#113f19', label: 'Пакеты в коробах' },
-      ] },
-  ];
-
-  const CATEGORIES = [
-    { id: 'all', name: 'Все' },
-    { id: 'fruits', name: 'Фрукты' },
-    { id: 'vegetables', name: 'Овощи' },
-    { id: 'greens', name: 'Зелень' },
-  ];
-  const CAT_NAME = Object.fromEntries(CATEGORIES.map(c => [c.id, c.name]));
-
-  /* ================= Утилиты ================= */
+  let PRODUCTS = []; // Сюда загрузятся данные из таблицы
   const state = { query: '', category: 'all', sort: 'name' };
   let currentProduct = null;
   let swipeGuard = false;
@@ -706,11 +471,106 @@
     modalBody: $('#modalBody'), catalog: $('#catalog'),
   };
 
+  /* ================= ПАРСЕР CSV ================= */
+  // Эта функция превращает текст из таблицы в массив объектов
+  function parseCSV(text) {
+    const lines = [];
+    let currentLine = [];
+    let currentCell = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const nextChar = text[i + 1];
+
+      if (char === '"') {
+        if (inQuotes && nextChar === '"') {
+          currentCell += '"'; i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        currentLine.push(currentCell);
+        currentCell = '';
+      } else if ((char === '\n' || char === '\r') && !inQuotes) {
+        if (char === '\r' && nextChar === '\n') i++;
+        currentLine.push(currentCell);
+        if (currentLine.length > 1 || currentLine[0] !== '') {
+          lines.push(currentLine);
+        }
+        currentLine = [];
+        currentCell = '';
+      } else {
+        currentCell += char;
+      }
+    }
+    if (currentCell !== '' || currentLine.length > 0) {
+      currentLine.push(currentCell);
+      lines.push(currentLine);
+    }
+    return lines;
+  }
+
+  /* ================= ЗАГРУЗКА ДАННЫХ ================= */
+  async function loadData() {
+    if (GOOGLE_SHEET_CSV_URL.includes("ваша_ссылка")) {
+      // Если ссылка не изменена, показываем демо-товары
+      console.warn("Вставьте ссылку на вашу Google Таблицу в переменную GOOGLE_SHEET_CSV_URL!");
+      PRODUCTS = [
+        { id: 'demo-1', name: 'Это демо-товар', category: 'fruits', assortment: 'Замените ссылку в коде на вашу таблицу', unit: 'кг', manufacturer: 'Google Sheets', desc: 'Откройте код (index.html), найдите строку 236 и вставьте туда ссылку из Google Таблиц.', images: [{ emoji: '🍎', c1: '#ff416c', c2: '#ff4b2b', label: 'Фото 1' }] }
+      ];
+      renderCatalog();
+      return;
+    }
+
+    try {
+      const response = await fetch(GOOGLE_SHEET_CSV_URL);
+      if (!response.ok) throw new Error('Ошибка сети');
+      const csvText = await response.text();
+      const rows = parseCSV(csvText);
+      
+      // Пропускаем первую строку (заголовки)
+      const dataRows = rows.slice(1);
+
+      PRODUCTS = dataRows.map(row => {
+        // Берем данные по индексам колонок (0, 1, 2...)
+        const id = row[0] || '';
+        const name = row[1] || '';
+        const cat = (row[2] || 'fruits').toLowerCase().trim();
+        const assortment = row[3] || '';
+        const unit = row[4] || 'кг';
+        const manufacturer = row[5] || '';
+        const desc = row[6] || '';
+        
+        // Собираем картинки (эмодзи из колонок H, I, J)
+        const imgEmojis = [row[7], row[8], row[9]].filter(Boolean);
+        const colors = DEFAULT_COLORS[cat] || DEFAULT_COLORS.fruits;
+        
+        const images = imgEmojis.length ? imgEmojis.map((emoji, index) => ({
+          emoji: emoji,
+          c1: colors[0],
+          c2: colors[1],
+          label: `Фото ${index + 1}`
+        })) : [{ emoji: '📦', c1: '#ccc', c2: '#999', label: 'Нет фото' }];
+
+        return { id, name, category: cat, assortment, unit, manufacturer, desc, images };
+      }).filter(p => p.name !== ''); // Отсеиваем пустые строки
+
+      renderCatalog();
+
+    } catch (error) {
+      console.error('Ошибка загрузки:', error);
+      els.grid.innerHTML = `<div class="empty">
+        <div class="empty__icon">⚠️</div>
+        <p>Не удалось загрузить каталог. Проверьте настройки доступа к таблице.</p>
+      </div>`;
+    }
+  }
+
   /* ================= Слайд-шоу ================= */
   function slideHTML(im) {
     return `<div class="slide" style="--c1:${im.c1};--c2:${im.c2}">
       <span class="slide__emoji">${im.emoji}</span>
-      <span class="slide__label">${im.label}</span>
     </div>`;
   }
   function dotsHTML(images) {
@@ -751,7 +611,15 @@
     return false;
   }
 
-  /* ================= Каталог ================= */
+  /* ================= Отрисовка Каталога ================= */
+  const CATEGORIES = [
+    { id: 'all', name: 'Все' },
+    { id: 'fruits', name: 'Фрукты' },
+    { id: 'vegetables', name: 'Овощи' },
+    { id: 'greens', name: 'Зелень' },
+  ];
+  const CAT_NAME = Object.fromEntries(CATEGORIES.map(c => [c.id, c.name]));
+
   function getVisible() {
     const q = state.query.trim().toLowerCase();
     const list = PRODUCTS.filter(p => {
@@ -760,7 +628,7 @@
         || p.name.toLowerCase().includes(q)
         || p.assortment.toLowerCase().includes(q)
         || p.manufacturer.toLowerCase().includes(q)
-        || CAT_NAME[p.category].toLowerCase().includes(q);
+        || (CAT_NAME[p.category] || '').toLowerCase().includes(q);
       return byCat && byQuery;
     });
 
@@ -771,12 +639,11 @@
   }
 
   function cardHTML(p) {
-    // Добавлен класс card--category для градиентной полосы сверху
     return `<article class="card card--${p.category}" data-id="${p.id}" tabindex="0" role="button"
                      aria-label="${p.name} — подробнее о товаре">
       ${sliderHTML(p, false)}
       <div class="card__body">
-        <span class="card__cat">${CAT_NAME[p.category]}</span>
+        <span class="card__cat">${CAT_NAME[p.category] || p.category}</span>
         <h3 class="card__name">${p.name}</h3>
         <div class="card__divider"></div>
         <p class="card__asm">${p.assortment}</p>
@@ -796,7 +663,6 @@
       els.grid.innerHTML = `<div class="empty">
         <div class="empty__icon">🔍</div>
         <p>По вашему запросу ничего не нашлось</p>
-        <button class="btn" data-reset type="button" style="padding: 10px 20px; border-radius: 999px; background: var(--green); color: white; border: none; cursor: pointer;">Сбросить фильтры</button>
       </div>`;
       return;
     }
@@ -810,7 +676,7 @@
               aria-selected="${c.id === state.category}">${c.name}</button>`).join('');
   }
 
-  /* ================= Карточка товара ================= */
+  /* ================= Модальное окно ================= */
   function openProduct(id) {
     const p = PRODUCTS.find(x => x.id === id);
     if (!p) return;
@@ -820,7 +686,7 @@
       <div class="m-media">${sliderHTML(p, true)}</div>
       <button class="m-close" data-close type="button" aria-label="Закрыть">✕</button>
       <div class="m-body">
-        <span class="card__cat">${CAT_NAME[p.category]}</span>
+        <span class="card__cat">${CAT_NAME[p.category] || p.category}</span>
         <h2>${p.name}</h2>
 
         <h3 class="m-title">Характеристики</h3>
@@ -846,12 +712,11 @@
     currentProduct = null;
   }
 
-  /* ================= Скролл к каталогу ================= */
+  /* ================= События ================= */
   function scrollToCatalog() {
     els.catalog.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  /* ================= События ================= */
   els.search.addEventListener('input', e => {
     state.query = e.target.value;
     renderCatalog();
@@ -881,12 +746,6 @@
   });
 
   els.grid.addEventListener('click', e => {
-    if (e.target.closest('[data-reset]')) {
-      state.query = ''; state.category = 'all'; state.sort = 'name';
-      els.search.value = ''; els.sort.value = 'name';
-      renderChips(); renderCatalog();
-      return;
-    }
     const card = e.target.closest('.card');
     if (!card) return;
     if (handleSliderClick(e)) return;
@@ -930,7 +789,7 @@
 
   /* ================= Старт ================= */
   renderChips();
-  renderCatalog();
+  loadData(); // Запускаем загрузку из Google Таблиц
 </script>
 </body>
 </html>
