@@ -449,7 +449,9 @@
 
 <script>
   /* ================= НАСТРОЙКА БАЗЫ ДАННЫХ ================= */
-  const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1tcat8Mlo8Fq31xRMWY9AJs84mcpH-AKhiEv6VvAbBn0/export?format=csv";
+  // Используем надежный метод экспорта gviz/tq, который работает без публикации в интернете
+  // (достаточно, чтобы таблица была открыта для чтения по ссылке)
+  const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1tcat8Mlo8Fq31xRMWY9AJs84mcpH-AKhiEv6VvAbBn0/gviz/tq?tqx=out:csv";
   /* ========================================================= */
 
   const DEFAULT_COLORS = {
@@ -508,6 +510,7 @@
       } else if ((char === '\n' || char === '\r') && !inQuotes) {
         if (char === '\r' && nextChar === '\n') i++;
         currentLine.push(currentCell);
+        // Добавляем строку, если в ней есть хоть какие-то данные
         if (currentLine.length > 1 || currentLine[0] !== '') {
           lines.push(currentLine);
         }
@@ -528,15 +531,31 @@
   async function loadData() {
     try {
       const response = await fetch(GOOGLE_SHEET_CSV_URL);
-      if (!response.ok) throw new Error('Ошибка сети');
+      if (!response.ok) throw new Error('Ошибка сети (HTTP ' + response.status + ')');
+      
       const csvText = await response.text();
-      const rows = parseCSV(csvText);
-      
-      if (rows.length === 0) return;
 
-      // Умный парсинг: ищем колонки по названиям заголовков
-      const headers = rows[0].map(h => h.trim().toLowerCase());
-      
+      // Проверяем, не вернул ли Google страницу входа
+      if (csvText.trim().startsWith('<!DOCTYPE html>') || csvText.includes('<html')) {
+        throw new Error('Нет доступа к таблице. Убедитесь, что в настройках доступа выбрано "Все, у кого есть ссылка".');
+      }
+
+      const rows = parseCSV(csvText);
+      if (rows.length === 0) throw new Error('Таблица пуста.');
+
+      // Ищем строку с заголовками (ищем совпадение 'id' и 'name_ru' в строке)
+      const headerRowIndex = rows.findIndex(row => {
+        const r = row.map(c => String(c).trim().toLowerCase());
+        return r.includes('id') && (r.includes('name_ru') || r.includes('name'));
+      });
+
+      if (headerRowIndex === -1) {
+         throw new Error('Не найдены заголовки (id, name_ru). Проверьте первую строку таблицы.');
+      }
+
+      const headers = rows[headerRowIndex].map(h => String(h).trim().toLowerCase().replace(/^\uFEFF/, ''));
+      const dataRows = rows.slice(headerRowIndex + 1);
+
       const idx = {
         id: headers.indexOf('id'),
         name: headers.indexOf('name_ru') !== -1 ? headers.indexOf('name_ru') : headers.indexOf('name'),
@@ -550,20 +569,22 @@
         img3: headers.indexOf('img3')
       };
 
-      const dataRows = rows.slice(1);
-
       PRODUCTS = dataRows.map(row => {
-        const getVal = (i) => (i !== -1 && row[i]) ? row[i].trim() : '';
-        
+        const getVal = (i) => (i !== -1 && row[i] !== undefined) ? String(row[i]).trim() : '';
+
         const id = getVal(idx.id);
-        const name = getVal(idx.name) || 'Без названия'; 
+        const name = getVal(idx.name);
+        
+        // Пропускаем строку только если нет ни ID, ни Названия
+        if (!id && !name) return null;
+
         const cat = getVal(idx.cat).toLowerCase() || 'fruits';
         const assortment = getVal(idx.asm);
         const unit = getVal(idx.unit) || 'кг';
         const manufacturer = getVal(idx.man);
         
         const rawPrice = getVal(idx.price).replace(',', '.');
-        const price = !isNaN(parseFloat(rawPrice)) ? parseFloat(rawPrice) : null;
+        const price = !isNaN(parseFloat(rawPrice)) && rawPrice !== '' ? parseFloat(rawPrice) : null;
         
         const rawImgs = [getVal(idx.img1), getVal(idx.img2), getVal(idx.img3)].filter(Boolean);
         const colors = DEFAULT_COLORS[cat] || DEFAULT_COLORS.fruits;
@@ -580,8 +601,12 @@
           };
         }) : [{ emoji: fallbackEmoji, c1: colors[0], c2: colors[1], label: 'Фото' }];
 
-        return { id, name, category: cat, assortment, unit, manufacturer, price, images };
-      }).filter(p => p.name !== 'Без названия' || p.id !== ''); // Показываем все, даже без цены
+        return { 
+          id: id || 'temp_' + Math.random().toString(36).substr(2, 9), 
+          name: name || 'Без названия', 
+          category: cat, assortment, unit, manufacturer, price, images 
+        };
+      }).filter(p => p !== null);
 
       renderCatalog();
 
@@ -589,7 +614,8 @@
       console.error('Ошибка загрузки:', error);
       els.grid.innerHTML = `<div class="empty">
         <div class="empty__icon">⚠️</div>
-        <p>Не удалось загрузить каталог. Проверьте настройки доступа к таблице.</p>
+        <p style="color: #ff4b2b; font-weight: bold;">${error.message}</p>
+        <p>Проверьте настройки доступа к таблице (кнопка «Поделиться» -> «Все, у кого есть ссылка»).</p>
       </div>`;
     }
   }
