@@ -449,18 +449,15 @@
 
 <script>
   /* ================= НАСТРОЙКА БАЗЫ ДАННЫХ ================= */
-  // Ваша новая ссылка на Google Таблицу (формат CSV)
   const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1tcat8Mlo8Fq31xRMWY9AJs84mcpH-AKhiEv6VvAbBn0/export?format=csv";
   /* ========================================================= */
 
-  // Дефолтные цвета для градиентов
   const DEFAULT_COLORS = {
     fruits: ['#ff416c', '#ff4b2b'],
     vegetables: ['#f7971e', '#ffd200'],
     greens: ['#56ab2f', '#a8e063']
   };
 
-  // Дефолтные эмодзи для категорий (если в таблице нет картинок)
   const DEFAULT_EMOJI = {
     fruits: '🍎',
     vegetables: '🥦',
@@ -535,33 +532,47 @@
       const csvText = await response.text();
       const rows = parseCSV(csvText);
       
-      // Пропускаем первую строку (заголовки)
+      if (rows.length === 0) return;
+
+      // Умный парсинг: ищем колонки по названиям заголовков
+      const headers = rows[0].map(h => h.trim().toLowerCase());
+      
+      const idx = {
+        id: headers.indexOf('id'),
+        name: headers.indexOf('name_ru') !== -1 ? headers.indexOf('name_ru') : headers.indexOf('name'),
+        cat: headers.indexOf('category'),
+        asm: headers.indexOf('assortment'),
+        unit: headers.indexOf('unit'),
+        man: headers.indexOf('manufacturer'),
+        price: headers.indexOf('desc') !== -1 ? headers.indexOf('desc') : headers.indexOf('price'),
+        img1: headers.indexOf('img1'),
+        img2: headers.indexOf('img2'),
+        img3: headers.indexOf('img3')
+      };
+
       const dataRows = rows.slice(1);
 
       PRODUCTS = dataRows.map(row => {
-        // Берем данные по индексам колонок (0, 1, 2...)
-        const id = row[0] || '';
-        const name = row[1] || ''; // name_ru
-        const cat = (row[2] || 'fruits').toLowerCase().trim();
-        const assortment = row[3] || '';
-        const unit = row[4] || 'кг';
-        const manufacturer = row[5] || '';
+        const getVal = (i) => (i !== -1 && row[i]) ? row[i].trim() : '';
         
-        // В 6-й колонке (индекс 6) у нас теперь Цена (в таблице она называется desc)
-        const rawPrice = row[6] ? row[6].trim() : '';
+        const id = getVal(idx.id);
+        const name = getVal(idx.name) || 'Без названия'; 
+        const cat = getVal(idx.cat).toLowerCase() || 'fruits';
+        const assortment = getVal(idx.asm);
+        const unit = getVal(idx.unit) || 'кг';
+        const manufacturer = getVal(idx.man);
+        
+        const rawPrice = getVal(idx.price).replace(',', '.');
         const price = !isNaN(parseFloat(rawPrice)) ? parseFloat(rawPrice) : null;
         
-        // Собираем картинки (эмодзи или ссылки из колонок H, I, J)
-        const rawImgs = [row[7], row[8], row[9]].filter(Boolean);
+        const rawImgs = [getVal(idx.img1), getVal(idx.img2), getVal(idx.img3)].filter(Boolean);
         const colors = DEFAULT_COLORS[cat] || DEFAULT_COLORS.fruits;
-        
-        // Если картинок нет вообще, ставим дефолтную эмодзи по категории
         const fallbackEmoji = DEFAULT_EMOJI[cat] || '📦';
 
         const images = rawImgs.length ? rawImgs.map((val, index) => {
-          const isUrl = val.trim().startsWith('http');
+          const isUrl = val.startsWith('http');
           return {
-            url: isUrl ? val.trim() : null,
+            url: isUrl ? val : null,
             emoji: !isUrl ? val : null,
             c1: colors[0],
             c2: colors[1],
@@ -570,7 +581,7 @@
         }) : [{ emoji: fallbackEmoji, c1: colors[0], c2: colors[1], label: 'Фото' }];
 
         return { id, name, category: cat, assortment, unit, manufacturer, price, images };
-      }).filter(p => p.name !== ''); // Отсеиваем пустые строки
+      }).filter(p => p.name !== 'Без названия' || p.id !== ''); // Показываем все, даже без цены
 
       renderCatalog();
 
