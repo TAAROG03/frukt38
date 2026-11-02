@@ -285,6 +285,13 @@
     overflow: hidden;
   }
 
+  /* Временная плашка для отладки */
+  .debug-cat {
+    font-size: 11px; color: #ff4b2b; background: #ffebeb;
+    padding: 2px 8px; border-radius: 4px; margin-bottom: 8px;
+    font-family: monospace;
+  }
+
   /* Empty State / Loading */
   .empty {
     grid-column: 1 / -1; text-align: center; padding: 60px 20px;
@@ -586,10 +593,8 @@
         if (!id && !name) return null;
 
         // Читаем категорию строго из таблицы
-        const rawCat = getVal(idx.cat).toLowerCase();
-        
-        // Убираем ВСЕ лишние символы, оставляем только буквы (чтобы \r, пробелы или кавычки не мешали)
-        const cleanCat = rawCat.replace(/[^a-zа-яё]/g, ''); 
+        const rawCat = getVal(idx.cat); // Для отладки сохраняем как есть
+        const cleanCat = rawCat.toLowerCase().replace(/[^a-zа-яё]/g, ''); 
 
         let cat = 'fruits'; // По умолчанию
         if (cleanCat.includes('veg') || cleanCat.includes('овощ')) cat = 'vegetables';
@@ -624,7 +629,9 @@
         return { 
           id: id || 'temp_' + Math.random().toString(36).substr(2, 9), 
           name: name || 'Без названия', 
-          category: cat, assortment, stock, manufacturer, price, images 
+          category: cat, 
+          rawCategory: rawCat, // Сохраняем сырое значение для отладки
+          assortment, stock, manufacturer, price, images 
         };
       }).filter(p => p !== null);
 
@@ -727,6 +734,9 @@
         <h3 class="card__name">${p.name}</h3>
         <div class="card__divider"></div>
         <p class="card__asm">${p.assortment || 'Описание ассортимента уточняется'}</p>
+        
+        <!-- ВРЕМЕННАЯ ОТЛАДКА: Показываем, что пришло из таблицы -->
+        <div class="debug-cat">В таблице: [${p.rawCategory}]</div>
       </div>
     </article>`;
   }
