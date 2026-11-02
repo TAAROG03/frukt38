@@ -524,24 +524,6 @@
     return lines;
   }
 
-  /* ================= ОПРЕДЕЛЕНИЕ КАТЕГОРИИ ================= */
-  function normalizeCategory(rawCat, name) {
-    const c = String(rawCat || '').toLowerCase().trim();
-    
-    // 1. Приоритет: берем строго из таблицы, если там что-то написано
-    if (c === 'fruits' || c === 'фрукты' || c === 'fruit') return 'fruits';
-    if (c === 'vegetables' || c === 'овощи' || c === 'vegetable' || c === 'veg') return 'vegetables';
-    if (c === 'greens' || c === 'зелень' || c === 'green') return 'greens';
-
-    // 2. Если в колонке category пусто или непонятное слово, угадываем по названию
-    const n = String(name || '').toLowerCase();
-    if (n.match(/яблок|груш|апельс|мандар|банан|виногр|лимон|киви|персик|абрикос|слив|арбуз|дын|ананас|манго|помело|марак|хурма|гранат|айва|лайм|нектарин|черешн|вишн/)) return 'fruits';
-    if (n.match(/помидор|томат|огур|картоф|морков|лук(?![а-я]* зел)|перец|капуст|баклаж|кабач|свекл|редис|тыкв|брокколи|дайкон|горох|кукуруз|чеснок|артишок|спарж/)) return 'vegetables';
-    if (n.match(/укроп|петруш|кинз|базил|салат|руккол|шпинат|зелен|мята|мелисс|тархун|щавель|лук зел|сельдер/)) return 'greens';
-    
-    return 'fruits'; // По умолчанию, если вообще ничего не подошло
-  }
-
   /* ================= ЗАГРУЗКА ДАННЫХ ================= */
   async function loadData() {
     try {
@@ -603,16 +585,20 @@
         
         if (!id && !name) return null;
 
-        const rawCat = getVal(idx.cat);
-        // Применяем нормализацию (сначала смотрим таблицу, потом угадываем)
-        const cat = normalizeCategory(rawCat, name);
+        // Строгое чтение категории из таблицы (без угадывания)
+        let cat = getVal(idx.cat).toLowerCase();
+        if (cat !== 'fruits' && cat !== 'vegetables' && cat !== 'greens') {
+          cat = 'fruits'; // Если пусто или ошибка, сваливаем во фрукты
+        }
         
         const assortment = getVal(idx.asm);
         const stock = getVal(idx.stock); 
         const manufacturer = getVal(idx.man);
         
+        // Умный парсинг цены (достаем только цифры)
         const rawPrice = getVal(idx.price);
-        const cleanPrice = rawPrice.replace(/[^\d.,]/g, '').replace(',', '.');
+        const matchPrice = rawPrice.match(/[\d.,]+/); // Ищем число
+        const cleanPrice = matchPrice ? matchPrice[0].replace(',', '.') : '';
         const price = !isNaN(parseFloat(cleanPrice)) && cleanPrice !== '' ? parseFloat(cleanPrice) : null;
         
         const rawImgs = [getVal(idx.img1), getVal(idx.img2), getVal(idx.img3)].filter(Boolean);
