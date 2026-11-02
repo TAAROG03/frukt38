@@ -425,7 +425,7 @@
 <main class="main" id="catalog">
   <div class="catalog-head">
     <h2>Каталог ассортимента</h2>
-    <p>Нажмите на карточку, чтобы увидеть вид ассортимента, единицу веса и производителя</p>
+    <p>Нажмите на карточку, чтобы увидеть вид ассортимента, наличие и производителя</p>
   </div>
 
   <div class="toolbar">
@@ -533,13 +533,12 @@
       const csvText = await response.text();
 
       if (csvText.trim().startsWith('<!DOCTYPE html>') || csvText.includes('<html')) {
-        throw new Error('Google вернул HTML-страницу вместо CSV. Проверьте, что таблица опубликована как CSV.');
+        throw new Error('Google вернул HTML-страницу вместо CSV. Проверьте доступ к таблице.');
       }
 
       const rows = parseCSV(csvText);
       if (rows.length === 0) throw new Error('Таблица пуста.');
 
-      // Ищем строку с заголовками в первых 10 строках
       let headerRowIndex = -1;
       for (let i = 0; i < Math.min(rows.length, 10); i++) {
         const row = rows[i].map(c => String(c).trim().toLowerCase().replace(/^\uFEFF/, ''));
@@ -557,7 +556,6 @@
       const headers = rows[headerRowIndex].map(h => String(h).trim().toLowerCase().replace(/^\uFEFF/, ''));
       const dataRows = rows.slice(headerRowIndex + 1);
 
-      // Поиск индексов колонок с учетом возможных альтернативных названий (поиск по вхождению)
       const findIdx = (possibleNames) => {
         for (const name of possibleNames) {
           const idx = headers.findIndex(h => h.includes(name));
@@ -571,7 +569,7 @@
         name: findIdx(['name_ru', 'name', 'наименование', 'название']),
         cat: findIdx(['category', 'категория', 'раздел']),
         asm: findIdx(['assortment', 'ассортимент', 'описание']),
-        unit: findIdx(['unit', 'ед. изм', 'единица', 'ед.изм', 'вес', 'фасовка']),
+        stock: findIdx(['unit', 'ед. изм', 'единица', 'ед.изм', 'вес', 'фасовка', 'наличие']),
         man: findIdx(['manufacturer', 'производитель', 'поставщик']),
         price: findIdx(['desc', 'price', 'цена', 'стоимость', 'прайс']),
         img1: findIdx(['img1', 'фото1', 'image1']),
@@ -589,10 +587,10 @@
 
         const cat = getVal(idx.cat).toLowerCase() || 'fruits';
         const assortment = getVal(idx.asm);
-        const unit = getVal(idx.unit) || 'кг';
+        const stock = getVal(idx.stock); // Наличие (вес/кол-во)
         const manufacturer = getVal(idx.man);
         
-        // Очищаем цену от любых букв и символов (например, "170,00 ₽" станет "170.00")
+        // Очищаем цену
         const rawPrice = getVal(idx.price);
         const cleanPrice = rawPrice.replace(/[^\d.,]/g, '').replace(',', '.');
         const price = !isNaN(parseFloat(cleanPrice)) && cleanPrice !== '' ? parseFloat(cleanPrice) : null;
@@ -615,7 +613,7 @@
         return { 
           id: id || 'temp_' + Math.random().toString(36).substr(2, 9), 
           name: name || 'Без названия', 
-          category: cat, assortment, unit, manufacturer, price, images 
+          category: cat, assortment, stock, manufacturer, price, images 
         };
       }).filter(p => p !== null);
 
@@ -626,7 +624,6 @@
       els.grid.innerHTML = `<div class="empty">
         <div class="empty__icon">⚠️</div>
         <p style="color: #ff4b2b; font-weight: bold; white-space: pre-wrap;">${error.message}</p>
-        <p>Проверьте настройки доступа к таблице (кнопка «Поделиться» -> «Все, у кого есть ссылка»).</p>
       </div>`;
     }
   }
@@ -651,6 +648,7 @@
   
   function sliderHTML(p, big) {
     const many = p.images.length > 1;
+    const stockText = p.stock ? `Наличие: ${p.stock}` : 'Нет в наличии';
     return `<div class="slider${big ? ' slider--lg' : ''}" data-slider
                  data-count="${p.images.length}" data-index="0">
       <div class="slider__track" data-track>${p.images.map(slideHTML).join('')}</div>
@@ -658,7 +656,7 @@
         <button class="slider__arrow slider__arrow--prev" data-slide="-1" type="button" aria-label="Предыдущее фото">‹</button>
         <button class="slider__arrow slider__arrow--next" data-slide="1" type="button" aria-label="Следующее фото">›</button>
         <div class="slider__dots">${dotsHTML(p.images)}</div>` : ''}
-      <span class="slider__unit">Ед. изм.: ${p.unit}</span>
+      <span class="slider__unit">${stockText}</span>
     </div>`;
   }
 
@@ -753,10 +751,17 @@
     if (!p) return;
     currentProduct = p;
 
-    // Проверяем price !== null, чтобы цена 0 тоже отображалась
-    const priceBlock = p.price !== null 
-      ? `<div class="m-price-block">${p.price} <span class="m-price-currency">₽ / ${p.unit}</span></div>`
-      : `<div class="m-price-empty">Ожидаем цен</div>`;
+    // Логика наличия
+    const availability = p.stock ? p.stock : 'Нет в наличии';
+
+    // Логика цены (выводим цену за кг, если она есть, иначе "Скоро")
+    let priceBlock;
+    if (p.price !== null) {
+      const formattedPrice = new Intl.NumberFormat('ru-RU').format(p.price);
+      priceBlock = `<div class="m-price-block">${formattedPrice} <span class="m-price-currency">₽ / кг</span></div>`;
+    } else {
+      priceBlock = `<div class="m-price-empty">Скоро</div>`;
+    }
 
     els.modalBody.innerHTML = `
       <div class="m-media">${sliderHTML(p, true)}</div>
@@ -768,7 +773,7 @@
         <h3 class="m-title">Характеристики</h3>
         <div class="specs">
           <div><span>Вид ассортимента</span><b>${p.assortment || '—'}</b></div>
-          <div><span>Единица измерения веса</span><b>${p.unit}</b></div>
+          <div><span>Наличие товара</span><b>${availability}</b></div>
           <div><span>Производитель</span><b>${p.manufacturer || '—'}</b></div>
         </div>
 
