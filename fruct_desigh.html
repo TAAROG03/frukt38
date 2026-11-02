@@ -585,11 +585,16 @@
         
         if (!id && !name) return null;
 
-        // Строгое чтение категории из таблицы (без угадывания)
-        let cat = getVal(idx.cat).toLowerCase();
-        if (cat !== 'fruits' && cat !== 'vegetables' && cat !== 'greens') {
-          cat = 'fruits'; // Если пусто или ошибка, сваливаем во фрукты
-        }
+        // Читаем категорию строго из таблицы
+        const rawCat = getVal(idx.cat).toLowerCase();
+        
+        // Убираем ВСЕ лишние символы, оставляем только буквы (чтобы \r, пробелы или кавычки не мешали)
+        const cleanCat = rawCat.replace(/[^a-zа-яё]/g, ''); 
+
+        let cat = 'fruits'; // По умолчанию
+        if (cleanCat.includes('veg') || cleanCat.includes('овощ')) cat = 'vegetables';
+        else if (cleanCat.includes('green') || cleanCat.includes('зелен')) cat = 'greens';
+        else if (cleanCat.includes('fruit') || cleanCat.includes('фрукт')) cat = 'fruits';
         
         const assortment = getVal(idx.asm);
         const stock = getVal(idx.stock); 
@@ -597,7 +602,7 @@
         
         // Умный парсинг цены (достаем только цифры)
         const rawPrice = getVal(idx.price);
-        const matchPrice = rawPrice.match(/[\d.,]+/); // Ищем число
+        const matchPrice = rawPrice.match(/[\d.,]+/); 
         const cleanPrice = matchPrice ? matchPrice[0].replace(',', '.') : '';
         const price = !isNaN(parseFloat(cleanPrice)) && cleanPrice !== '' ? parseFloat(cleanPrice) : null;
         
