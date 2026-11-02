@@ -43,15 +43,18 @@
     display: flex; align-items: center; justify-content: space-between; gap: 20px;
   }
   .logo {
-    display: flex; align-items: center; gap: 12px;
+    display: flex; align-items: center;
     text-decoration: none; color: var(--green);
   }
-  .logo__icon { font-size: 34px; line-height: 1; }
-  .logo__text {
-    font-family: 'Caveat', cursive;
-    font-size: 34px; font-weight: 700; letter-spacing: 0.5px;
-    margin-top: -6px;
+  
+  /* Стили для нового логотипа-картинки */
+  .logo__img {
+    height: 55px; /* Высота логотипа в шапке */
+    width: auto;
+    display: block;
+    object-fit: contain;
   }
+
   .nav { display: flex; gap: 28px; }
   .nav__link {
     text-decoration: none; color: var(--text);
@@ -385,6 +388,7 @@
     .grid { grid-template-columns: 1fr; }
     .card { max-width: 340px; margin: 0 auto; width: 100%; }
     .hero__bg-fruit { font-size: 80px; }
+    .logo__img { height: 40px; } /* Уменьшаем логотип на телефонах */
   }
 </style>
 </head>
@@ -393,8 +397,8 @@
 <header class="header">
   <div class="header__inner">
     <a href="#" class="logo">
-      <span class="logo__icon">🌳</span>
-      <span class="logo__text">Фруктовая лавка</span>
+      <!-- Здесь мы заменили текст на картинку -->
+      <img src="logo.png" alt="Фруктовая лавка" class="logo__img">
     </a>
     <nav class="nav">
       <a href="#" class="nav__link is-active">Главная</a>
@@ -449,7 +453,6 @@
 
 <script>
   /* ================= НАСТРОЙКА БАЗЫ ДАННЫХ ================= */
-  // Ссылка на ваш первый (главный) лист, где собраны все данные
   const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1tcat8Mlo8Fq31xRMWY9AJs84mcpH-AKhiEv6VvAbBn0/export?format=csv";
   /* ========================================================= */
 
@@ -528,7 +531,6 @@
   /* ================= ЗАГРУЗКА ДАННЫХ ================= */
   async function loadData() {
     try {
-      // Добавляем метку времени, чтобы браузер не кэшировал данные
       const noCacheUrl = GOOGLE_SHEET_CSV_URL + '&_=' + new Date().getTime();
       const response = await fetch(noCacheUrl);
       if (!response.ok) throw new Error('Ошибка сети (HTTP ' + response.status + ')');
@@ -588,7 +590,6 @@
         
         if (!id && !name) return null;
 
-        // Строгое чтение категории
         const rawCat = getVal(idx.cat);
         const cleanCat = rawCat.toLowerCase().replace(/[^a-zа-яё]/g, ''); 
 
@@ -601,7 +602,6 @@
         const stock = getVal(idx.stock); 
         const manufacturer = getVal(idx.man);
         
-        // Парсинг цены
         const rawPrice = getVal(idx.price);
         const matchPrice = rawPrice.match(/[\d.,]+/); 
         const cleanPrice = matchPrice ? matchPrice[0].replace(',', '.') : '';
