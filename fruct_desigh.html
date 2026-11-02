@@ -449,11 +449,8 @@
 
 <script>
   /* ================= НАСТРОЙКА БАЗЫ ДАННЫХ ================= */
-  // Ссылка на первый лист (Цены и Наличие)
-  const PRICE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1tcat8Mlo8Fq31xRMWY9AJs84mcpH-AKhiEv6VvAbBn0/gviz/tq?tqx=out:csv";
-  
-  // Ссылка на лист "Общий регистр" (Категории, Фото)
-  const CATALOG_SHEET_URL = "https://docs.google.com/spreadsheets/d/1tcat8Mlo8Fq31xRMWY9AJs84mcpH-AKhiEv6VvAbBn0/gviz/tq?tqx=out:csv&sheet=%D0%9E%D0%B1%D1%89%D0%B8%D0%B9%20%D1%80%D0%B5%D0%B3%D0%B8%D1%81%D1%82%D1%80";
+  // Ссылка на ваш первый (главный) лист, где собраны все данные
+  const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1tcat8Mlo8Fq31xRMWY9AJs84mcpH-AKhiEv6VvAbBn0/export?format=csv";
   /* ========================================================= */
 
   const DEFAULT_COLORS = {
@@ -531,65 +528,36 @@
   /* ================= ЗАГРУЗКА ДАННЫХ ================= */
   async function loadData() {
     try {
-      const [priceRes, catalogRes] = await Promise.all([
-        fetch(PRICE_SHEET_URL + '&_=' + new Date().getTime()),
-        fetch(CATALOG_SHEET_URL + '&_=' + new Date().getTime())
-      ]);
+      // Добавляем метку времени, чтобы браузер не кэшировал данные
+      const noCacheUrl = GOOGLE_SHEET_CSV_URL + '&_=' + new Date().getTime();
+      const response = await fetch(noCacheUrl);
+      if (!response.ok) throw new Error('Ошибка сети (HTTP ' + response.status + ')');
+      
+      const csvText = await response.text();
 
-      if (!priceRes.ok || !catalogRes.ok) throw new Error('Ошибка сети');
-
-      const priceText = await priceRes.text();
-      const catalogText = await catalogRes.text();
-
-      // Если Google вернул HTML вместо CSV (значит ссылка неверная или доступ закрыт)
-      if (catalogText.includes('<html') || catalogText.includes('<!DOCTYPE html>')) {
-         throw new Error('Google вернул HTML для "Общего регистра". Проверьте доступ к таблице.');
+      if (csvText.trim().startsWith('<!DOCTYPE html>') || csvText.includes('<html')) {
+        throw new Error('Google вернул HTML-страницу вместо CSV. Проверьте доступ к таблице.');
       }
 
-      const priceRows = parseCSV(priceText);
-      const catalogRows = parseCSV(catalogText);
+      const rows = parseCSV(csvText);
+      if (rows.length === 0) throw new Error('Таблица пуста.');
 
-      // 1. Обрабатываем ПРАЙС
-      const priceHeaders = priceRows[0].map(h => h.trim().toLowerCase());
-      const pIdx = {
-        name: priceHeaders.findIndex(h => h.includes('наименование') || h.includes('название')),
-        price: priceHeaders.findIndex(h => h.includes('цена')),
-        stock: priceHeaders.findIndex(h => h.includes('вес') || h.includes('штуки') || h.includes('наличие'))
-      };
-
-      const priceMap = {};
-      priceRows.slice(1).forEach(row => {
-        const name = (row[pIdx.name] || '').trim().toLowerCase();
-        if (!name) return;
-
-        const rawPrice = row[pIdx.price] || '';
-        const matchPrice = rawPrice.match(/[\d.,]+/);
-        const cleanPrice = matchPrice ? matchPrice[0].replace(',', '.') : '';
-        const price = !isNaN(parseFloat(cleanPrice)) && cleanPrice !== '' ? parseFloat(cleanPrice) : null;
-
-        const stock = (row[pIdx.stock] || '').trim();
-
-        // Мягкое совпадение ключа
-        priceMap[name] = { price, stock };
-      });
-
-      // 2. Обрабатываем КАТАЛОГ (Общий регистр)
       let headerRowIndex = -1;
-      for (let i = 0; i < Math.min(catalogRows.length, 10); i++) {
-        const row = catalogRows[i].map(c => String(c).trim().toLowerCase().replace(/^\uFEFF/, ''));
+      for (let i = 0; i < Math.min(rows.length, 10); i++) {
+        const row = rows[i].map(c => String(c).trim().toLowerCase().replace(/^\uFEFF/, ''));
         if (row.includes('id') || row.includes('name_ru') || row.includes('наименование')) {
           headerRowIndex = i;
           break;
         }
       }
 
-      // ДИАГНОСТИКА: если заголовки не найдены, выводим первые 300 символов того, что пришло
       if (headerRowIndex === -1) {
-        throw new Error('Не найдены заголовки в Регистре. Данные из Google: \n\n' + catalogText.slice(0, 300));
+        const preview = rows.slice(0, 3).map(r => r.join(' | ')).join('\n');
+        throw new Error('Не найдены заголовки. Первые строки:\n' + preview);
       }
 
-      const headers = catalogRows[headerRowIndex].map(h => String(h).trim().toLowerCase().replace(/^\uFEFF/, ''));
-      const dataRows = catalogRows.slice(headerRowIndex + 1);
+      const headers = rows[headerRowIndex].map(h => String(h).trim().toLowerCase().replace(/^\uFEFF/, ''));
+      const dataRows = rows.slice(headerRowIndex + 1);
 
       const findIdx = (possibleNames) => {
         for (const name of possibleNames) {
@@ -604,7 +572,9 @@
         name: findIdx(['name_ru', 'name', 'наименование']),
         cat: findIdx(['category', 'категория', 'раздел']),
         asm: findIdx(['assortment', 'ассортимент', 'описание']),
+        stock: findIdx(['unit', 'наличие', 'остаток', 'вес', 'фасовка']),
         man: findIdx(['manufacturer', 'производитель']),
+        price: findIdx(['desc', 'price', 'цена', 'стоимость']),
         img1: findIdx(['img1', 'фото1']),
         img2: findIdx(['img2', 'фото2']),
         img3: findIdx(['img3', 'фото3'])
@@ -618,26 +588,24 @@
         
         if (!id && !name) return null;
 
+        // Строгое чтение категории
         const rawCat = getVal(idx.cat);
         const cleanCat = rawCat.toLowerCase().replace(/[^a-zа-яё]/g, ''); 
-        let cat = 'fruits';
+
+        let cat = 'fruits'; 
         if (cleanCat.includes('veg') || cleanCat.includes('овощ')) cat = 'vegetables';
         else if (cleanCat.includes('green') || cleanCat.includes('зелен')) cat = 'greens';
         else if (cleanCat.includes('fruit') || cleanCat.includes('фрукт')) cat = 'fruits';
         
         const assortment = getVal(idx.asm);
+        const stock = getVal(idx.stock); 
         const manufacturer = getVal(idx.man);
         
-        // Поиск цены (сначала точное совпадение, потом "мягкое" по вхождению)
-        const nameKey = name.toLowerCase();
-        let priceData = priceMap[nameKey];
-        
-        if (!priceData) {
-           const foundKey = Object.keys(priceMap).find(k => k.includes(nameKey) || nameKey.includes(k));
-           if (foundKey) priceData = priceMap[foundKey];
-        }
-        
-        if (!priceData) priceData = { price: null, stock: '' };
+        // Парсинг цены
+        const rawPrice = getVal(idx.price);
+        const matchPrice = rawPrice.match(/[\d.,]+/); 
+        const cleanPrice = matchPrice ? matchPrice[0].replace(',', '.') : '';
+        const price = !isNaN(parseFloat(cleanPrice)) && cleanPrice !== '' ? parseFloat(cleanPrice) : null;
         
         const rawImgs = [getVal(idx.img1), getVal(idx.img2), getVal(idx.img3)].filter(Boolean);
         const colors = DEFAULT_COLORS[cat] || DEFAULT_COLORS.fruits;
@@ -657,10 +625,7 @@
         return { 
           id: id || 'temp_' + Math.random().toString(36).substr(2, 9), 
           name: name || 'Без названия', 
-          category: cat, assortment, manufacturer, 
-          price: priceData.price, 
-          stock: priceData.stock, 
-          images 
+          category: cat, assortment, stock, manufacturer, price, images 
         };
       }).filter(p => p !== null);
 
@@ -670,7 +635,7 @@
       console.error('Ошибка загрузки:', error);
       els.grid.innerHTML = `<div class="empty">
         <div class="empty__icon">⚠️</div>
-        <p style="color: #ff4b2b; font-weight: bold; white-space: pre-wrap; font-size: 12px; text-align: left; word-break: break-all;">${error.message}</p>
+        <p style="color: #ff4b2b; font-weight: bold; white-space: pre-wrap;">${error.message}</p>
       </div>`;
     }
   }
