@@ -327,7 +327,6 @@
 
   .m-body { padding: 32px; display: flex; flex-direction: column; gap: 16px; }
   .m-body h2 { font-size: 26px; font-weight: 800; color: #1a261c; line-height: 1.3; }
-  .m-desc { font-size: 14px; line-height: 1.6; color: var(--muted); }
 
   .specs { display: grid; gap: 10px; margin-top: 4px; }
   .specs div {
@@ -342,6 +341,21 @@
     font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em;
     color: var(--muted); font-weight: 700; margin-top: 8px;
   }
+
+  /* Стили для блока Цены */
+  .m-price-block {
+    display: flex; align-items: baseline; gap: 8px;
+    font-size: 28px; font-weight: 800; color: var(--text);
+    margin-top: 4px;
+  }
+  .m-price-currency { font-size: 16px; color: var(--muted); font-weight: 600; }
+  
+  .m-price-empty {
+    font-size: 15px; font-weight: 600; color: var(--muted);
+    background: var(--bg); padding: 14px 16px; border-radius: 12px;
+    text-align: center; border: 1px dashed var(--border);
+  }
+
   .m-note {
     font-size: 12px; line-height: 1.6; color: var(--green);
     padding: 14px 16px; border-radius: 12px;
@@ -385,8 +399,6 @@
     <nav class="nav">
       <a href="#" class="nav__link is-active">Главная</a>
       <a href="#catalog" class="nav__link">Каталог</a>
-      <a href="#" class="nav__link">О компании</a>
-      <a href="#" class="nav__link">Контакты</a>
     </nav>
   </div>
 </header>
@@ -427,7 +439,6 @@
 
   <div id="count" class="count"></div>
   <div id="grid" class="grid">
-    <!-- Здесь будет надпись "Загрузка..." пока данные едут с Google -->
     <div class="empty"><div class="empty__icon">⏳</div><p>Загрузка каталога...</p></div>
   </div>
 </main>
@@ -438,18 +449,57 @@
 
 <script>
   /* ================= НАСТРОЙКА БАЗЫ ДАННЫХ ================= */
-  // Ссылка на вашу Google Таблицу (CSV)
-  const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSI-2eNw4zpBwxqnanfsdUJg2CEz5byueiWbJwJFwVMAPEUtLbqhddc-sgCbbvZJLq-vn3obqUqUurS/pub?output=csv";
+  // НОВАЯ ССЫЛКА (на будущее, пока не используется):
+  // https://docs.google.com/spreadsheets/d/1tcat8Mlo8Fq31xRMWY9AJs84mcpH-AKhiEv6VvAbBn0/edit?usp=sharing
+  // const NEW_GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1tcat8Mlo8Fq31xRMWY9AJs84mcpH-AKhiEv6VvAbBn0/export?format=csv";
   /* ========================================================= */
 
-  // Дефолтные цвета для градиентов, если их нет в таблице
+  // Дефолтные цвета для градиентов
   const DEFAULT_COLORS = {
     fruits: ['#ff416c', '#ff4b2b'],
     vegetables: ['#f7971e', '#ffd200'],
     greens: ['#56ab2f', '#a8e063']
   };
 
-  let PRODUCTS = []; // Сюда загрузятся данные из таблицы
+  /* ================= 10 ТЕСТОВЫХ ТОВАРОВ ================= */
+  const TEMP_PRODUCTS = [
+    { id: 't1', name: 'Яблоки Голден', category: 'fruits', assortment: 'Сорт высший, калибр 70–80 мм', unit: 'кг', manufacturer: 'ООО «Сад Прикубанья»', price: 120, 
+      images: [{emoji:'🍎', c1:'#ff416c', c2:'#ff4b2b'}, {emoji:'🍏', c1:'#56ab2f', c2:'#a8e063'}, {emoji:'📦', c1:'#f7971e', c2:'#ffd200'}] },
+      
+    { id: 't2', name: 'Апельсины Навелина', category: 'fruits', assortment: 'Калибр 5–6, сорт Навелина', unit: 'кг', manufacturer: '«Sun Citrus», Турция', price: null, 
+      images: [{emoji:'🍊', c1:'#ff416c', c2:'#ff4b2b'}, {emoji:'🍹', c1:'#f7971e', c2:'#ffd200'}] },
+      
+    { id: 't3', name: 'Бананы Кавендиш', category: 'fruits', assortment: '2 класс, калибр 18–20 см', unit: 'кг', manufacturer: '«EcuadorBanana»', price: 85, 
+      images: [{emoji:'🍌', c1:'#ff416c', c2:'#ff4b2b'}, {emoji:'🐒', c1:'#56ab2f', c2:'#a8e063'}] },
+      
+    { id: 't4', name: 'Томаты «Бычье сердце»', category: 'vegetables', assortment: 'Калибр 80+, сорт Бычье сердце', unit: 'кг', manufacturer: 'ТК «Тепличный»', price: 190, 
+      images: [{emoji:'🍅', c1:'#f7971e', c2:'#ffd200'}, {emoji:'🥫', c1:'#ff416c', c2:'#ff4b2b'}] },
+      
+    { id: 't5', name: 'Огурцы гладкие', category: 'vegetables', assortment: 'Калибр 12–14 см', unit: 'кг', manufacturer: 'ТК «Овощной дом»', price: null, 
+      images: [{emoji:'🥒', c1:'#f7971e', c2:'#ffd200'}, {emoji:'🥗', c1:'#56ab2f', c2:'#a8e063'}] },
+      
+    { id: 't6', name: 'Картофель Гала', category: 'vegetables', assortment: 'Сорт Гала, калибр 45+', unit: 'кг', manufacturer: 'Агрохолдинг «Полевое»', price: 45, 
+      images: [{emoji:'🥔', c1:'#f7971e', c2:'#ffd200'}, {emoji:'🍟', c1:'#ff416c', c2:'#ff4b2b'}] },
+      
+    { id: 't7', name: 'Салат Айсберг', category: 'greens', assortment: 'Кочан 400–600 г', unit: 'кг', manufacturer: 'ТК «Зелёная линия»', price: 110, 
+      images: [{emoji:'🥬', c1:'#56ab2f', c2:'#a8e063'}, {emoji:'🥗', c1:'#f7971e', c2:'#ffd200'}] },
+      
+    { id: 't8', name: 'Укроп', category: 'greens', assortment: 'Пучок ~100 г', unit: 'кг', manufacturer: '«GreenFarm»', price: 350, 
+      images: [{emoji:'🌿', c1:'#56ab2f', c2:'#a8e063'}, {emoji:'🍲', c1:'#ff416c', c2:'#ff4b2b'}] },
+
+    { id: 't9', name: 'Груши (с фото)', category: 'fruits', assortment: 'Сорт Конференция', unit: 'кг', manufacturer: 'КФХ «Долина садов»', price: 140, 
+      images: [
+        { url: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?q=80&w=600&auto=format&fit=crop', c1:'#ff416c', c2:'#ff4b2b' }, 
+        { url: 'https://images.unsplash.com/photo-1514756331096-242fdeb70d4a?q=80&w=600&auto=format&fit=crop', c1:'#56ab2f', c2:'#a8e063' }
+      ] },
+      
+    { id: 't10', name: 'Морковь (с фото)', category: 'vegetables', assortment: 'Сорт Нантская 4', unit: 'кг', manufacturer: 'КФХ «Корнеплод»', price: null, 
+      images: [
+        { url: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?q=80&w=600&auto=format&fit=crop', c1:'#f7971e', c2:'#ffd200' }
+      ] }
+  ];
+
+  let PRODUCTS = []; 
   const state = { query: '', category: 'all', sort: 'name' };
   let currentProduct = null;
   let swipeGuard = false;
@@ -470,114 +520,32 @@
     modalBody: $('#modalBody'), catalog: $('#catalog'),
   };
 
-  /* ================= ПАРСЕР CSV ================= */
-  function parseCSV(text) {
-    const lines = [];
-    let currentLine = [];
-    let currentCell = '';
-    let inQuotes = false;
-
-    for (let i = 0; i < text.length; i++) {
-      const char = text[i];
-      const nextChar = text[i + 1];
-
-      if (char === '"') {
-        if (inQuotes && nextChar === '"') {
-          currentCell += '"'; i++;
-        } else {
-          inQuotes = !inQuotes;
-        }
-      } else if (char === ',' && !inQuotes) {
-        currentLine.push(currentCell);
-        currentCell = '';
-      } else if ((char === '\n' || char === '\r') && !inQuotes) {
-        if (char === '\r' && nextChar === '\n') i++;
-        currentLine.push(currentCell);
-        if (currentLine.length > 1 || currentLine[0] !== '') {
-          lines.push(currentLine);
-        }
-        currentLine = [];
-        currentCell = '';
-      } else {
-        currentCell += char;
-      }
-    }
-    if (currentCell !== '' || currentLine.length > 0) {
-      currentLine.push(currentCell);
-      lines.push(currentLine);
-    }
-    return lines;
-  }
-
   /* ================= ЗАГРУЗКА ДАННЫХ ================= */
   async function loadData() {
-    try {
-      const response = await fetch(GOOGLE_SHEET_CSV_URL);
-      if (!response.ok) throw new Error('Ошибка сети');
-      const csvText = await response.text();
-      const rows = parseCSV(csvText);
-      
-      // Пропускаем первую строку (заголовки)
-      const dataRows = rows.slice(1);
-
-      PRODUCTS = dataRows.map(row => {
-        // Берем данные по индексам колонок (0, 1, 2...)
-        const id = row[0] || '';
-        const name = row[1] || '';
-        const cat = (row[2] || 'fruits').toLowerCase().trim();
-        const assortment = row[3] || '';
-        const unit = row[4] || 'кг';
-        const manufacturer = row[5] || '';
-        const desc = row[6] || '';
-        
-       // Собираем картинки (эмодзи или ссылки из колонок H, I, J)
-const rawImgs = [row[7], row[8], row[9]].filter(Boolean);
-const colors = DEFAULT_COLORS[cat] || DEFAULT_COLORS.fruits;
-
-const images = rawImgs.length ? rawImgs.map((val, index) => {
-  const isUrl = val.trim().startsWith('http');
-  return {
-    // Если это ссылка — сохраняем в url, иначе в emoji
-    url: isUrl ? val.trim() : null,
-    emoji: !isUrl ? val : null,
-    c1: colors[0],
-    c2: colors[1],
-    label: `Фото ${index + 1}`
-  };
-}) : [{ emoji: '📦', c1: '#ccc', c2: '#999', label: 'Нет фото' }];
-
-        return { id, name, category: cat, assortment, unit, manufacturer, desc, images };
-      }).filter(p => p.name !== ''); // Отсеиваем пустые строки
-
+    setTimeout(() => {
+      PRODUCTS = [...TEMP_PRODUCTS];
       renderCatalog();
-
-    } catch (error) {
-      console.error('Ошибка загрузки:', error);
-      els.grid.innerHTML = `<div class="empty">
-        <div class="empty__icon">⚠️</div>
-        <p>Не удалось загрузить каталог. Проверьте настройки доступа к таблице.</p>
-      </div>`;
-    }
+    }, 300);
   }
 
   /* ================= Слайд-шоу ================= */
   function slideHTML(im) {
-  // Если это ссылка (начинается с http) — выводим картинку
-  if (im.url && im.url.startsWith('http')) {
+    if (im.url && im.url.startsWith('http')) {
+      return `<div class="slide" style="--c1:${im.c1};--c2:${im.c2}">
+        <img src="${im.url}" alt="Фото товара" style="width:100%; height:100%; object-fit:cover; border-radius:12px 12px 0 0;" loading="lazy">
+      </div>`;
+    }
     return `<div class="slide" style="--c1:${im.c1};--c2:${im.c2}">
-      <img src="${im.url}" alt="Фото товара" style="width:100%; height:100%; object-fit:cover; border-radius:12px 12px 0 0;" loading="lazy">
+      <span class="slide__emoji">${im.emoji}</span>
     </div>`;
   }
-  // Иначе выводим эмодзи (как было)
-  return `<div class="slide" style="--c1:${im.c1};--c2:${im.c2}">
-    <span class="slide__emoji">${im.emoji}</span>
-  </div>`;
-}
+  
   function dotsHTML(images) {
     return images.map((_, i) =>
       `<button class="dot${i === 0 ? ' is-active' : ''}" data-dot="${i}" type="button"
        aria-label="Фото ${i + 1}"></button>`).join('');
   }
+  
   function sliderHTML(p, big) {
     const many = p.images.length > 1;
     return `<div class="slider${big ? ' slider--lg' : ''}" data-slider
@@ -682,6 +650,11 @@ const images = rawImgs.length ? rawImgs.map((val, index) => {
     if (!p) return;
     currentProduct = p;
 
+    // Формируем блок цены: если цена есть — выводим её, если нет — заглушку
+    const priceBlock = p.price 
+      ? `<div class="m-price-block">${p.price} <span class="m-price-currency">₽ / ${p.unit}</span></div>`
+      : `<div class="m-price-empty">Ожидаем цен</div>`;
+
     els.modalBody.innerHTML = `
       <div class="m-media">${sliderHTML(p, true)}</div>
       <button class="m-close" data-close type="button" aria-label="Закрыть">✕</button>
@@ -696,8 +669,8 @@ const images = rawImgs.length ? rawImgs.map((val, index) => {
           <div><span>Производитель</span><b>${p.manufacturer}</b></div>
         </div>
 
-        <h3 class="m-title">Описание</h3>
-        <p class="m-desc">${p.desc}</p>
+        <h3 class="m-title">Цена</h3>
+        ${priceBlock}
 
         <p class="m-note">Объёмы поставки, минимальная партия и график отгрузок уточняются у менеджера.</p>
       </div>`;
@@ -789,7 +762,7 @@ const images = rawImgs.length ? rawImgs.map((val, index) => {
 
   /* ================= Старт ================= */
   renderChips();
-  loadData(); // Запускаем загрузку из Google Таблиц
+  loadData(); 
 </script>
 </body>
 </html>
