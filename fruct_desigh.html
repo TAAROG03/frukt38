@@ -449,10 +449,10 @@
 
 <script>
   /* ================= НАСТРОЙКА БАЗЫ ДАННЫХ ================= */
-  // 1. Ссылка на ПЕРВЫЙ лист (Цены и Наличие)
+  // Ссылка на первый лист (Цены и Наличие)
   const PRICE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1tcat8Mlo8Fq31xRMWY9AJs84mcpH-AKhiEv6VvAbBn0/gviz/tq?tqx=out:csv";
   
-  // 2. Ссылка на лист "Общий регистр" (Категории, Фото, Описание)
+  // Ссылка на лист "Общий регистр" (Категории, Фото)
   const CATALOG_SHEET_URL = "https://docs.google.com/spreadsheets/d/1tcat8Mlo8Fq31xRMWY9AJs84mcpH-AKhiEv6VvAbBn0/gviz/tq?tqx=out:csv&sheet=%D0%9E%D0%B1%D1%89%D0%B8%D0%B9%20%D1%80%D0%B5%D0%B3%D0%B8%D1%81%D1%82%D1%80";
   /* ========================================================= */
 
@@ -531,7 +531,6 @@
   /* ================= ЗАГРУЗКА ДАННЫХ ================= */
   async function loadData() {
     try {
-      // Запрашиваем оба листа параллельно для скорости
       const [priceRes, catalogRes] = await Promise.all([
         fetch(PRICE_SHEET_URL + '&_=' + new Date().getTime()),
         fetch(CATALOG_SHEET_URL + '&_=' + new Date().getTime())
@@ -542,14 +541,15 @@
       const priceText = await priceRes.text();
       const catalogText = await catalogRes.text();
 
-      if (priceText.includes('<html') || catalogText.includes('<html')) {
-        throw new Error('Google вернул HTML. Проверьте доступ к таблице.');
+      // Если Google вернул HTML вместо CSV (значит ссылка неверная или доступ закрыт)
+      if (catalogText.includes('<html') || catalogText.includes('<!DOCTYPE html>')) {
+         throw new Error('Google вернул HTML для "Общего регистра". Проверьте доступ к таблице.');
       }
 
       const priceRows = parseCSV(priceText);
       const catalogRows = parseCSV(catalogText);
 
-      // 1. Обрабатываем ПРАЙС (Цены и Наличие)
+      // 1. Обрабатываем ПРАЙС
       const priceHeaders = priceRows[0].map(h => h.trim().toLowerCase());
       const pIdx = {
         name: priceHeaders.findIndex(h => h.includes('наименование') || h.includes('название')),
@@ -562,29 +562,31 @@
         const name = (row[pIdx.name] || '').trim().toLowerCase();
         if (!name) return;
 
-        // Парсим цену
         const rawPrice = row[pIdx.price] || '';
         const matchPrice = rawPrice.match(/[\d.,]+/);
         const cleanPrice = matchPrice ? matchPrice[0].replace(',', '.') : '';
         const price = !isNaN(parseFloat(cleanPrice)) && cleanPrice !== '' ? parseFloat(cleanPrice) : null;
 
-        // Парсим наличие
         const stock = (row[pIdx.stock] || '').trim();
 
+        // Мягкое совпадение ключа
         priceMap[name] = { price, stock };
       });
 
-      // 2. Обрабатываем КАТАЛОГ (Карточки и Категории)
+      // 2. Обрабатываем КАТАЛОГ (Общий регистр)
       let headerRowIndex = -1;
       for (let i = 0; i < Math.min(catalogRows.length, 10); i++) {
         const row = catalogRows[i].map(c => String(c).trim().toLowerCase().replace(/^\uFEFF/, ''));
-        if (row.includes('id') || row.includes('name_ru')) {
+        if (row.includes('id') || row.includes('name_ru') || row.includes('наименование')) {
           headerRowIndex = i;
           break;
         }
       }
 
-      if (headerRowIndex === -1) throw new Error('В Регистре не найдены заголовки.');
+      // ДИАГНОСТИКА: если заголовки не найдены, выводим первые 300 символов того, что пришло
+      if (headerRowIndex === -1) {
+        throw new Error('Не найдены заголовки в Регистре. Данные из Google: \n\n' + catalogText.slice(0, 300));
+      }
 
       const headers = catalogRows[headerRowIndex].map(h => String(h).trim().toLowerCase().replace(/^\uFEFF/, ''));
       const dataRows = catalogRows.slice(headerRowIndex + 1);
@@ -616,7 +618,6 @@
         
         if (!id && !name) return null;
 
-        // Категория
         const rawCat = getVal(idx.cat);
         const cleanCat = rawCat.toLowerCase().replace(/[^a-zа-яё]/g, ''); 
         let cat = 'fruits';
@@ -627,9 +628,16 @@
         const assortment = getVal(idx.asm);
         const manufacturer = getVal(idx.man);
         
-        // Ищем цену и наличие по названию в прайсе
+        // Поиск цены (сначала точное совпадение, потом "мягкое" по вхождению)
         const nameKey = name.toLowerCase();
-        const priceData = priceMap[nameKey] || { price: null, stock: '' };
+        let priceData = priceMap[nameKey];
+        
+        if (!priceData) {
+           const foundKey = Object.keys(priceMap).find(k => k.includes(nameKey) || nameKey.includes(k));
+           if (foundKey) priceData = priceMap[foundKey];
+        }
+        
+        if (!priceData) priceData = { price: null, stock: '' };
         
         const rawImgs = [getVal(idx.img1), getVal(idx.img2), getVal(idx.img3)].filter(Boolean);
         const colors = DEFAULT_COLORS[cat] || DEFAULT_COLORS.fruits;
@@ -662,7 +670,7 @@
       console.error('Ошибка загрузки:', error);
       els.grid.innerHTML = `<div class="empty">
         <div class="empty__icon">⚠️</div>
-        <p style="color: #ff4b2b; font-weight: bold; white-space: pre-wrap;">${error.message}</p>
+        <p style="color: #ff4b2b; font-weight: bold; white-space: pre-wrap; font-size: 12px; text-align: left; word-break: break-all;">${error.message}</p>
       </div>`;
     }
   }
