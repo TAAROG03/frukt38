@@ -39,7 +39,8 @@
     border-bottom: 1px solid var(--border);
   }
   .header__inner {
-    max-width: 1180px; margin: 0 auto; padding: 14px 20px;
+    max-width: 1180px; margin: 0 auto; 
+    padding: 10px 20px; /* Уменьшили вертикальный отступ, так как сам логотип стал больше */
     display: flex; align-items: center; justify-content: space-between; gap: 20px;
   }
   .logo {
@@ -47,12 +48,16 @@
     text-decoration: none; color: var(--green);
   }
   
-  /* Стили для нового логотипа-картинки */
+  /* Увеличенный логотип */
   .logo__img {
-    height: 55px; /* Высота логотипа в шапке */
+    height: 80px; /* Было 55px, стало 80px */
     width: auto;
     display: block;
     object-fit: contain;
+    transition: transform 0.2s;
+  }
+  .logo:hover .logo__img {
+    transform: scale(1.02); /* Легкий эффект при наведении */
   }
 
   .nav { display: flex; gap: 28px; }
@@ -381,14 +386,19 @@
     .slider--lg { border-radius: 24px 24px 0 0; }
     .slider--lg .slide__emoji { font-size: 90px; }
     .m-body { padding: 24px; }
+    
+    /* Уменьшаем логотип на планшетах */
+    .logo__img { height: 60px; }
   }
   @media (max-width: 500px) {
-    .header__inner { flex-direction: column; gap: 10px; }
+    .header__inner { flex-direction: column; gap: 10px; padding-top: 15px; padding-bottom: 15px; }
     .nav { width: 100%; justify-content: center; flex-wrap: wrap; gap: 16px; }
     .grid { grid-template-columns: 1fr; }
     .card { max-width: 340px; margin: 0 auto; width: 100%; }
     .hero__bg-fruit { font-size: 80px; }
-    .logo__img { height: 40px; } /* Уменьшаем логотип на телефонах */
+    
+    /* Уменьшаем логотип на телефонах, чтобы не занимал пол-экрана */
+    .logo__img { height: 50px; }
   }
 </style>
 </head>
@@ -397,7 +407,6 @@
 <header class="header">
   <div class="header__inner">
     <a href="#" class="logo">
-      <!-- Здесь мы заменили текст на картинку -->
       <img src="logo.png" alt="Фруктовая лавка" class="logo__img">
     </a>
     <nav class="nav">
