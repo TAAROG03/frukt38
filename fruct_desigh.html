@@ -449,7 +449,6 @@
 
 <script>
   /* ================= НАСТРОЙКА БАЗЫ ДАННЫХ ================= */
-  // Новая ссылка на опубликованную таблицу
   const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ01jTnRRI04j3aUhhVqkxB3Mt1WU9CAx4Fvx-k79Evjhn_QrHUclp6UMBkCExcak3xpzlsFevi6Ges/pub?output=csv";
   /* ========================================================= */
 
@@ -533,19 +532,17 @@
       
       const csvText = await response.text();
 
-      // Проверяем, не вернул ли Google страницу входа или ошибки
       if (csvText.trim().startsWith('<!DOCTYPE html>') || csvText.includes('<html')) {
-        throw new Error('Google вернул HTML-страницу вместо CSV. Проверьте, что таблица опубликована как CSV и доступна по ссылке.');
+        throw new Error('Google вернул HTML-страницу вместо CSV. Проверьте, что таблица опубликована как CSV.');
       }
 
       const rows = parseCSV(csvText);
-      if (rows.length === 0) throw new Error('Таблица пуста или не удалось прочитать CSV.');
+      if (rows.length === 0) throw new Error('Таблица пуста.');
 
       // Ищем строку с заголовками в первых 10 строках
       let headerRowIndex = -1;
       for (let i = 0; i < Math.min(rows.length, 10); i++) {
         const row = rows[i].map(c => String(c).trim().toLowerCase().replace(/^\uFEFF/, ''));
-        // Ищем хотя бы 'id' или 'name_ru' или 'наименование'
         if (row.includes('id') || row.includes('name_ru') || row.includes('наименование') || row.includes('название')) {
           headerRowIndex = i;
           break;
@@ -553,18 +550,17 @@
       }
 
       if (headerRowIndex === -1) {
-        // Для отладки показываем первые строки
         const preview = rows.slice(0, 3).map(r => r.join(' | ')).join('\n');
-        throw new Error('Не найдены заголовки (id, name_ru). Первые строки таблицы:\n' + preview);
+        throw new Error('Не найдены заголовки. Первые строки:\n' + preview);
       }
 
       const headers = rows[headerRowIndex].map(h => String(h).trim().toLowerCase().replace(/^\uFEFF/, ''));
       const dataRows = rows.slice(headerRowIndex + 1);
 
-      // Поиск индексов колонок с учетом возможных альтернативных названий
+      // Поиск индексов колонок с учетом возможных альтернативных названий (поиск по вхождению)
       const findIdx = (possibleNames) => {
         for (const name of possibleNames) {
-          const idx = headers.indexOf(name);
+          const idx = headers.findIndex(h => h.includes(name));
           if (idx !== -1) return idx;
         }
         return -1;
@@ -575,9 +571,9 @@
         name: findIdx(['name_ru', 'name', 'наименование', 'название']),
         cat: findIdx(['category', 'категория', 'раздел']),
         asm: findIdx(['assortment', 'ассортимент', 'описание']),
-        unit: findIdx(['unit', 'ед. изм.', 'единица', 'ед.изм']),
+        unit: findIdx(['unit', 'ед. изм', 'единица', 'ед.изм', 'вес', 'фасовка']),
         man: findIdx(['manufacturer', 'производитель', 'поставщик']),
-        price: findIdx(['desc', 'price', 'цена', 'стоимость']),
+        price: findIdx(['desc', 'price', 'цена', 'стоимость', 'прайс']),
         img1: findIdx(['img1', 'фото1', 'image1']),
         img2: findIdx(['img2', 'фото2', 'image2']),
         img3: findIdx(['img3', 'фото3', 'image3'])
@@ -589,7 +585,6 @@
         const id = getVal(idx.id);
         const name = getVal(idx.name);
         
-        // Пропускаем строку только если нет ни ID, ни Названия
         if (!id && !name) return null;
 
         const cat = getVal(idx.cat).toLowerCase() || 'fruits';
@@ -597,8 +592,10 @@
         const unit = getVal(idx.unit) || 'кг';
         const manufacturer = getVal(idx.man);
         
-        const rawPrice = getVal(idx.price).replace(',', '.');
-        const price = !isNaN(parseFloat(rawPrice)) && rawPrice !== '' ? parseFloat(rawPrice) : null;
+        // Очищаем цену от любых букв и символов (например, "170,00 ₽" станет "170.00")
+        const rawPrice = getVal(idx.price);
+        const cleanPrice = rawPrice.replace(/[^\d.,]/g, '').replace(',', '.');
+        const price = !isNaN(parseFloat(cleanPrice)) && cleanPrice !== '' ? parseFloat(cleanPrice) : null;
         
         const rawImgs = [getVal(idx.img1), getVal(idx.img2), getVal(idx.img3)].filter(Boolean);
         const colors = DEFAULT_COLORS[cat] || DEFAULT_COLORS.fruits;
@@ -756,7 +753,8 @@
     if (!p) return;
     currentProduct = p;
 
-    const priceBlock = p.price 
+    // Проверяем price !== null, чтобы цена 0 тоже отображалась
+    const priceBlock = p.price !== null 
       ? `<div class="m-price-block">${p.price} <span class="m-price-currency">₽ / ${p.unit}</span></div>`
       : `<div class="m-price-empty">Ожидаем цен</div>`;
 
