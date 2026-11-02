@@ -534,7 +534,9 @@
   /* ================= ЗАГРУЗКА ДАННЫХ ================= */
   async function loadData() {
     try {
-      const response = await fetch(GOOGLE_SHEET_CSV_URL);
+      // Добавляем метку времени, чтобы браузер не кэшировал данные
+      const noCacheUrl = GOOGLE_SHEET_CSV_URL + '&_=' + new Date().getTime();
+      const response = await fetch(noCacheUrl);
       if (!response.ok) throw new Error('Ошибка сети (HTTP ' + response.status + ')');
       
       const csvText = await response.text();
@@ -563,26 +565,37 @@
       const headers = rows[headerRowIndex].map(h => String(h).trim().toLowerCase().replace(/^\uFEFF/, ''));
       const dataRows = rows.slice(headerRowIndex + 1);
 
+      // Строгий поиск колонок по точному названию
       const findIdx = (possibleNames) => {
         for (const name of possibleNames) {
-          const idx = headers.findIndex(h => h.includes(name));
+          const idx = headers.findIndex(h => h === name || h.includes(name));
           if (idx !== -1) return idx;
         }
         return -1;
       };
 
       const idx = {
-        id: findIdx(['id', 'код', 'артикул']),
-        name: findIdx(['name_ru', 'name', 'наименование', 'название']),
-        cat: findIdx(['category', 'категория', 'раздел', 'тип', 'group', 'вид']),
+        id: findIdx(['id', 'код']),
+        name: findIdx(['name_ru', 'name', 'наименование']),
+        cat: findIdx(['category', 'категория', 'раздел']),
         asm: findIdx(['assortment', 'ассортимент', 'описание']),
-        stock: findIdx(['unit', 'ед. изм', 'единица', 'ед.изм', 'вес', 'фасовка', 'наличие', 'кол-во', 'количество', 'остаток']),
-        man: findIdx(['manufacturer', 'производитель', 'поставщик']),
-        price: findIdx(['desc', 'price', 'цена', 'стоимость', 'прайс']),
-        img1: findIdx(['img1', 'фото1', 'image1']),
-        img2: findIdx(['img2', 'фото2', 'image2']),
-        img3: findIdx(['img3', 'фото3', 'image3'])
+        stock: findIdx(['unit', 'наличие', 'остаток', 'вес', 'фасовка']),
+        man: findIdx(['manufacturer', 'производитель']),
+        price: findIdx(['desc', 'price', 'цена', 'стоимость']),
+        img1: findIdx(['img1', 'фото1']),
+        img2: findIdx(['img2', 'фото2']),
+        img3: findIdx(['img3', 'фото3'])
       };
+
+      // ДИАГНОСТИЧЕСКАЯ ПАНЕЛЬ (Временно)
+      const debugPanel = document.createElement('div');
+      debugPanel.style.cssText = 'position:fixed; top:0; left:0; right:0; background:rgba(0,0,0,0.85); color:#0f0; padding:10px; z-index:9999; font-family:monospace; font-size:11px; max-height:150px; overflow:auto; pointer-events:none;';
+      debugPanel.innerHTML = `
+        <b>Заголовки CSV:</b> ${JSON.stringify(headers)}<br>
+        <b>Первая строка:</b> ${JSON.stringify(dataRows[0])}<br>
+        <b>Индекс category:</b> ${idx.cat}
+      `;
+      document.body.appendChild(debugPanel);
 
       PRODUCTS = dataRows.map(row => {
         const getVal = (i) => (i !== -1 && row[i] !== undefined) ? String(row[i]).trim() : '';
@@ -593,7 +606,7 @@
         if (!id && !name) return null;
 
         // Читаем категорию строго из таблицы
-        const rawCat = getVal(idx.cat); // Для отладки сохраняем как есть
+        const rawCat = getVal(idx.cat);
         const cleanCat = rawCat.toLowerCase().replace(/[^a-zа-яё]/g, ''); 
 
         let cat = 'fruits'; // По умолчанию
@@ -605,7 +618,7 @@
         const stock = getVal(idx.stock); 
         const manufacturer = getVal(idx.man);
         
-        // Умный парсинг цены (достаем только цифры)
+        // Умный парсинг цены
         const rawPrice = getVal(idx.price);
         const matchPrice = rawPrice.match(/[\d.,]+/); 
         const cleanPrice = matchPrice ? matchPrice[0].replace(',', '.') : '';
@@ -630,7 +643,7 @@
           id: id || 'temp_' + Math.random().toString(36).substr(2, 9), 
           name: name || 'Без названия', 
           category: cat, 
-          rawCategory: rawCat, // Сохраняем сырое значение для отладки
+          rawCategory: rawCat, // Для отладки
           assortment, stock, manufacturer, price, images 
         };
       }).filter(p => p !== null);
@@ -735,7 +748,6 @@
         <div class="card__divider"></div>
         <p class="card__asm">${p.assortment || 'Описание ассортимента уточняется'}</p>
         
-        <!-- ВРЕМЕННАЯ ОТЛАДКА: Показываем, что пришло из таблицы -->
         <div class="debug-cat">В таблице: [${p.rawCategory}]</div>
       </div>
     </article>`;
