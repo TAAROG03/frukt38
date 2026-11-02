@@ -449,9 +449,8 @@
 
 <script>
   /* ================= НАСТРОЙКА БАЗЫ ДАННЫХ ================= */
-  // НОВАЯ ССЫЛКА (на будущее, пока не используется):
-  // https://docs.google.com/spreadsheets/d/1tcat8Mlo8Fq31xRMWY9AJs84mcpH-AKhiEv6VvAbBn0/edit?usp=sharing
-  // const NEW_GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1tcat8Mlo8Fq31xRMWY9AJs84mcpH-AKhiEv6VvAbBn0/export?format=csv";
+  // Ваша новая ссылка на Google Таблицу (формат CSV)
+  const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1tcat8Mlo8Fq31xRMWY9AJs84mcpH-AKhiEv6VvAbBn0/export?format=csv";
   /* ========================================================= */
 
   // Дефолтные цвета для градиентов
@@ -461,43 +460,12 @@
     greens: ['#56ab2f', '#a8e063']
   };
 
-  /* ================= 10 ТЕСТОВЫХ ТОВАРОВ ================= */
-  const TEMP_PRODUCTS = [
-    { id: 't1', name: 'Яблоки Голден', category: 'fruits', assortment: 'Сорт высший, калибр 70–80 мм', unit: 'кг', manufacturer: 'ООО «Сад Прикубанья»', price: 120, 
-      images: [{emoji:'🍎', c1:'#ff416c', c2:'#ff4b2b'}, {emoji:'🍏', c1:'#56ab2f', c2:'#a8e063'}, {emoji:'📦', c1:'#f7971e', c2:'#ffd200'}] },
-      
-    { id: 't2', name: 'Апельсины Навелина', category: 'fruits', assortment: 'Калибр 5–6, сорт Навелина', unit: 'кг', manufacturer: '«Sun Citrus», Турция', price: null, 
-      images: [{emoji:'🍊', c1:'#ff416c', c2:'#ff4b2b'}, {emoji:'🍹', c1:'#f7971e', c2:'#ffd200'}] },
-      
-    { id: 't3', name: 'Бананы Кавендиш', category: 'fruits', assortment: '2 класс, калибр 18–20 см', unit: 'кг', manufacturer: '«EcuadorBanana»', price: 85, 
-      images: [{emoji:'🍌', c1:'#ff416c', c2:'#ff4b2b'}, {emoji:'🐒', c1:'#56ab2f', c2:'#a8e063'}] },
-      
-    { id: 't4', name: 'Томаты «Бычье сердце»', category: 'vegetables', assortment: 'Калибр 80+, сорт Бычье сердце', unit: 'кг', manufacturer: 'ТК «Тепличный»', price: 190, 
-      images: [{emoji:'🍅', c1:'#f7971e', c2:'#ffd200'}, {emoji:'🥫', c1:'#ff416c', c2:'#ff4b2b'}] },
-      
-    { id: 't5', name: 'Огурцы гладкие', category: 'vegetables', assortment: 'Калибр 12–14 см', unit: 'кг', manufacturer: 'ТК «Овощной дом»', price: null, 
-      images: [{emoji:'🥒', c1:'#f7971e', c2:'#ffd200'}, {emoji:'🥗', c1:'#56ab2f', c2:'#a8e063'}] },
-      
-    { id: 't6', name: 'Картофель Гала', category: 'vegetables', assortment: 'Сорт Гала, калибр 45+', unit: 'кг', manufacturer: 'Агрохолдинг «Полевое»', price: 45, 
-      images: [{emoji:'🥔', c1:'#f7971e', c2:'#ffd200'}, {emoji:'🍟', c1:'#ff416c', c2:'#ff4b2b'}] },
-      
-    { id: 't7', name: 'Салат Айсберг', category: 'greens', assortment: 'Кочан 400–600 г', unit: 'кг', manufacturer: 'ТК «Зелёная линия»', price: 110, 
-      images: [{emoji:'🥬', c1:'#56ab2f', c2:'#a8e063'}, {emoji:'🥗', c1:'#f7971e', c2:'#ffd200'}] },
-      
-    { id: 't8', name: 'Укроп', category: 'greens', assortment: 'Пучок ~100 г', unit: 'кг', manufacturer: '«GreenFarm»', price: 350, 
-      images: [{emoji:'🌿', c1:'#56ab2f', c2:'#a8e063'}, {emoji:'🍲', c1:'#ff416c', c2:'#ff4b2b'}] },
-
-    { id: 't9', name: 'Груши (с фото)', category: 'fruits', assortment: 'Сорт Конференция', unit: 'кг', manufacturer: 'КФХ «Долина садов»', price: 140, 
-      images: [
-        { url: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?q=80&w=600&auto=format&fit=crop', c1:'#ff416c', c2:'#ff4b2b' }, 
-        { url: 'https://images.unsplash.com/photo-1514756331096-242fdeb70d4a?q=80&w=600&auto=format&fit=crop', c1:'#56ab2f', c2:'#a8e063' }
-      ] },
-      
-    { id: 't10', name: 'Морковь (с фото)', category: 'vegetables', assortment: 'Сорт Нантская 4', unit: 'кг', manufacturer: 'КФХ «Корнеплод»', price: null, 
-      images: [
-        { url: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?q=80&w=600&auto=format&fit=crop', c1:'#f7971e', c2:'#ffd200' }
-      ] }
-  ];
+  // Дефолтные эмодзи для категорий (если в таблице нет картинок)
+  const DEFAULT_EMOJI = {
+    fruits: '🍎',
+    vegetables: '🥦',
+    greens: '🌿'
+  };
 
   let PRODUCTS = []; 
   const state = { query: '', category: 'all', sort: 'name' };
@@ -520,12 +488,99 @@
     modalBody: $('#modalBody'), catalog: $('#catalog'),
   };
 
+  /* ================= ПАРСЕР CSV ================= */
+  function parseCSV(text) {
+    const lines = [];
+    let currentLine = [];
+    let currentCell = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const nextChar = text[i + 1];
+
+      if (char === '"') {
+        if (inQuotes && nextChar === '"') {
+          currentCell += '"'; i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        currentLine.push(currentCell);
+        currentCell = '';
+      } else if ((char === '\n' || char === '\r') && !inQuotes) {
+        if (char === '\r' && nextChar === '\n') i++;
+        currentLine.push(currentCell);
+        if (currentLine.length > 1 || currentLine[0] !== '') {
+          lines.push(currentLine);
+        }
+        currentLine = [];
+        currentCell = '';
+      } else {
+        currentCell += char;
+      }
+    }
+    if (currentCell !== '' || currentLine.length > 0) {
+      currentLine.push(currentCell);
+      lines.push(currentLine);
+    }
+    return lines;
+  }
+
   /* ================= ЗАГРУЗКА ДАННЫХ ================= */
   async function loadData() {
-    setTimeout(() => {
-      PRODUCTS = [...TEMP_PRODUCTS];
+    try {
+      const response = await fetch(GOOGLE_SHEET_CSV_URL);
+      if (!response.ok) throw new Error('Ошибка сети');
+      const csvText = await response.text();
+      const rows = parseCSV(csvText);
+      
+      // Пропускаем первую строку (заголовки)
+      const dataRows = rows.slice(1);
+
+      PRODUCTS = dataRows.map(row => {
+        // Берем данные по индексам колонок (0, 1, 2...)
+        const id = row[0] || '';
+        const name = row[1] || ''; // name_ru
+        const cat = (row[2] || 'fruits').toLowerCase().trim();
+        const assortment = row[3] || '';
+        const unit = row[4] || 'кг';
+        const manufacturer = row[5] || '';
+        
+        // В 6-й колонке (индекс 6) у нас теперь Цена (в таблице она называется desc)
+        const rawPrice = row[6] ? row[6].trim() : '';
+        const price = !isNaN(parseFloat(rawPrice)) ? parseFloat(rawPrice) : null;
+        
+        // Собираем картинки (эмодзи или ссылки из колонок H, I, J)
+        const rawImgs = [row[7], row[8], row[9]].filter(Boolean);
+        const colors = DEFAULT_COLORS[cat] || DEFAULT_COLORS.fruits;
+        
+        // Если картинок нет вообще, ставим дефолтную эмодзи по категории
+        const fallbackEmoji = DEFAULT_EMOJI[cat] || '📦';
+
+        const images = rawImgs.length ? rawImgs.map((val, index) => {
+          const isUrl = val.trim().startsWith('http');
+          return {
+            url: isUrl ? val.trim() : null,
+            emoji: !isUrl ? val : null,
+            c1: colors[0],
+            c2: colors[1],
+            label: `Фото ${index + 1}`
+          };
+        }) : [{ emoji: fallbackEmoji, c1: colors[0], c2: colors[1], label: 'Фото' }];
+
+        return { id, name, category: cat, assortment, unit, manufacturer, price, images };
+      }).filter(p => p.name !== ''); // Отсеиваем пустые строки
+
       renderCatalog();
-    }, 300);
+
+    } catch (error) {
+      console.error('Ошибка загрузки:', error);
+      els.grid.innerHTML = `<div class="empty">
+        <div class="empty__icon">⚠️</div>
+        <p>Не удалось загрузить каталог. Проверьте настройки доступа к таблице.</p>
+      </div>`;
+    }
   }
 
   /* ================= Слайд-шоу ================= */
@@ -614,7 +669,7 @@
         <span class="card__cat">${CAT_NAME[p.category] || p.category}</span>
         <h3 class="card__name">${p.name}</h3>
         <div class="card__divider"></div>
-        <p class="card__asm">${p.assortment}</p>
+        <p class="card__asm">${p.assortment || 'Описание ассортимента уточняется'}</p>
       </div>
     </article>`;
   }
@@ -650,7 +705,6 @@
     if (!p) return;
     currentProduct = p;
 
-    // Формируем блок цены: если цена есть — выводим её, если нет — заглушку
     const priceBlock = p.price 
       ? `<div class="m-price-block">${p.price} <span class="m-price-currency">₽ / ${p.unit}</span></div>`
       : `<div class="m-price-empty">Ожидаем цен</div>`;
@@ -664,9 +718,9 @@
 
         <h3 class="m-title">Характеристики</h3>
         <div class="specs">
-          <div><span>Вид ассортимента</span><b>${p.assortment}</b></div>
+          <div><span>Вид ассортимента</span><b>${p.assortment || '—'}</b></div>
           <div><span>Единица измерения веса</span><b>${p.unit}</b></div>
-          <div><span>Производитель</span><b>${p.manufacturer}</b></div>
+          <div><span>Производитель</span><b>${p.manufacturer || '—'}</b></div>
         </div>
 
         <h3 class="m-title">Цена</h3>
