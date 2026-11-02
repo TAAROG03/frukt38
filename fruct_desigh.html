@@ -57,6 +57,9 @@
     color: var(--text);
     -webkit-font-smoothing: antialiased;
     transition: background-color 0.3s ease, color 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
   }
   body.is-locked { overflow: hidden; }
   button, input, select { font: inherit; color: inherit; }
@@ -136,30 +139,41 @@
     border-color: var(--green);
   }
 
-  /* ---------- Hero ---------- */
+  /* ---------- Hero (Обновленный) ---------- */
   .hero {
     position: relative;
-    padding: 90px 20px 110px;
-    text-align: center;
+    padding: 60px 20px 80px;
     overflow: hidden;
     background: var(--hero-bg);
     border-bottom: 1px solid var(--border);
     transition: background 0.3s ease, border-color 0.3s ease;
+    flex: 1; /* Чтобы футер прижимался к низу */
   }
+  
   .hero__bg-fruit {
-    position: absolute; font-size: 140px; opacity: 0.1;
+    position: absolute; font-size: 140px; opacity: 0.05;
     pointer-events: none; user-select: none;
     filter: drop-shadow(0 20px 30px rgba(0,0,0,0.1));
   }
-  .hero__bg-fruit--1 { top: 15%; left: 8%; transform: rotate(-15deg); }
-  .hero__bg-fruit--2 { top: 20%; right: 10%; transform: rotate(20deg); }
-  .hero__bg-fruit--3 { bottom: 10%; left: 18%; transform: rotate(10deg); font-size: 100px; }
-  .hero__bg-fruit--4 { bottom: 15%; right: 15%; transform: rotate(-25deg); font-size: 110px; }
+  .hero__bg-fruit--1 { top: 10%; left: 5%; transform: rotate(-15deg); }
+  .hero__bg-fruit--2 { top: 15%; right: 45%; transform: rotate(20deg); }
+  .hero__bg-fruit--3 { bottom: 10%; left: 10%; transform: rotate(10deg); font-size: 100px; }
+  .hero__bg-fruit--4 { bottom: 15%; right: 5%; transform: rotate(-25deg); font-size: 110px; }
 
   .hero__inner {
     position: relative; z-index: 1;
-    max-width: 800px; margin: 0 auto;
+    max-width: 1100px; margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 50px;
   }
+
+  .hero__content {
+    flex: 1;
+    max-width: 600px;
+  }
+
   .hero__title {
     font-family: 'Playfair Display', serif;
     font-size: clamp(34px, 5vw, 52px);
@@ -174,14 +188,13 @@
   .hero__sub {
     margin-top: 18px;
     font-size: 17px; color: var(--muted);
-    max-width: 600px; margin-left: auto; margin-right: auto;
     line-height: 1.6;
     font-weight: 500;
   }
 
   .hero__search {
     position: relative;
-    max-width: 640px; margin: 40px auto 0;
+    max-width: 640px; margin: 40px 0 0 0;
   }
   .hero__search-icon {
     position: absolute; left: 24px; top: 50%; transform: translateY(-50%);
@@ -212,10 +225,39 @@
   .hero__search-btn:hover { background: var(--green-hover); transform: translateY(-1px); }
   .hero__search-btn:active { transform: scale(0.97); }
 
+  .hero__image-wrapper {
+    flex: 0 0 400px;
+    max-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .hero__circle-logo {
+    width: 100%;
+    max-width: 380px;
+    border-radius: 50%;
+    box-shadow: 0 20px 50px rgba(44, 143, 22, 0.15);
+    animation: floatLogo 6s ease-in-out infinite;
+    background: #fff;
+  }
+  
+  [data-theme="dark"] .hero__circle-logo {
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    filter: brightness(0.9); /* Чтобы не слепило в темноте */
+  }
+
+  @keyframes floatLogo {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+  }
+
   /* ---------- Каталог ---------- */
   .main {
     max-width: 1180px; margin: 0 auto;
     padding: 70px 20px 100px;
+    width: 100%;
   }
   .catalog-head {
     text-align: center; margin-bottom: 40px;
@@ -479,9 +521,66 @@
     transition: background-color 0.3s, border-color 0.3s;
   }
 
+  /* ---------- Подвал (Footer) ---------- */
+  .footer {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 50px 20px;
+    text-align: center;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+  .footer__inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+  .footer__logo {
+    height: 160px;
+    width: auto;
+    opacity: 0.9;
+    transition: opacity 0.3s, filter 0.3s;
+  }
+  [data-theme="dark"] .footer__logo {
+    filter: brightness(1.2); /* В темной теме делаем логотип чуть ярче */
+  }
+  .footer__logo:hover {
+    opacity: 1;
+  }
+  .footer__text {
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
   /* Адаптив */
+  @media (max-width: 950px) {
+    .hero__inner {
+      flex-direction: column-reverse;
+      text-align: center;
+      gap: 30px;
+    }
+    .hero__content {
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .hero__search {
+      margin: 30px auto 0;
+    }
+    .hero__image-wrapper {
+      flex: 0 0 300px;
+    }
+    .hero__circle-logo {
+      max-width: 280px;
+    }
+  }
+
   @media (max-width: 800px) {
-    .hero { padding: 60px 16px 80px; }
+    .hero { padding: 40px 16px 60px; }
     .hero__search input { padding: 16px 24px 16px 48px; font-size: 15px; }
     .hero__search-icon { left: 18px; font-size: 16px; }
     .hero__search-btn { display: none; }
@@ -497,6 +596,7 @@
     .logo__img { height: 55px; }
     .hero__title { font-size: 32px; }
     .header__nav-group { width: 100%; justify-content: space-between; }
+    .footer__logo { height: 120px; }
   }
   @media (max-width: 500px) {
     .header__inner { flex-direction: column; gap: 15px; padding-top: 15px; padding-bottom: 15px; }
@@ -507,6 +607,7 @@
     .logo__img { height: 50px; }
     .header__nav-group { flex-direction: column; gap: 15px; }
     .nav { display: none; }
+    .footer__logo { height: 100px; }
   }
 </style>
 </head>
@@ -515,6 +616,7 @@
 <header class="header">
   <div class="header__inner">
     <a href="#" class="logo">
+      <!-- Первый логотип (горизонтальный) -->
       <img src="logo.png" alt="Фруктовая лавка" class="logo__img">
     </a>
     <div class="header__nav-group">
@@ -534,14 +636,21 @@
   <span class="hero__bg-fruit hero__bg-fruit--4">🍇</span>
 
   <div class="hero__inner">
-    <h1 class="hero__title">Свежие фрукты, овощи и зелень</h1>
-    <p class="hero__sub">Оптовые поставки для бизнеса и розничных сетей. Прямые контракты с производителями.</p>
+    <div class="hero__content">
+      <h1 class="hero__title">Свежие фрукты, овощи и зелень</h1>
+      <p class="hero__sub">Оптовые поставки для бизнеса и розничных сетей. Прямые контракты с производителями.</p>
 
-    <div class="hero__search">
-      <span class="hero__search-icon">🔍</span>
-      <input id="search" type="search" autocomplete="off"
-             placeholder="Найдите свой товар: яблоки, томаты, зелень…" aria-label="Поиск товаров">
-      <button class="hero__search-btn" type="button" data-scroll-catalog>Найти</button>
+      <div class="hero__search">
+        <span class="hero__search-icon">🔍</span>
+        <input id="search" type="search" autocomplete="off"
+               placeholder="Найдите свой товар: яблоки, томаты, зелень…" aria-label="Поиск товаров">
+        <button class="hero__search-btn" type="button" data-scroll-catalog>Найти</button>
+      </div>
+    </div>
+
+    <div class="hero__image-wrapper">
+      <!-- Второй логотип (круглый) -->
+      <img src="logo-circle.png" alt="Фрукты, овощи и зелень" class="hero__circle-logo">
     </div>
   </div>
 </section>
@@ -566,6 +675,14 @@
     <div class="empty"><div class="empty__icon">⏳</div><p>Загрузка каталога...</p></div>
   </div>
 </main>
+
+<footer class="footer">
+  <div class="footer__inner">
+    <!-- Третий логотип (вертикальный) -->
+    <img src="logo-vertical.png" alt="Фруктовая лавка" class="footer__logo">
+    <p class="footer__text">© 2026 Фруктовая лавка. Оптовые поставки свежих фруктов, овощей и зелени.</p>
+  </div>
+</footer>
 
 <div id="modal" class="modal" role="dialog" aria-modal="true" aria-label="Информация о товаре">
   <div id="modalBody" class="modal__card"></div>
@@ -820,7 +937,6 @@
         <button class="slider__arrow slider__arrow--prev" data-slide="-1" type="button" aria-label="Предыдущее фото">‹</button>
         <button class="slider__arrow slider__arrow--next" data-slide="1" type="button" aria-label="Следующее фото">›</button>
         <div class="slider__dots">${dotsHTML(p.images)}</div>` : ''}
-      <!-- Плашку наличия показываем ТОЛЬКО в маленьких карточках (не в модалке) -->
       ${!big ? `<span class="slider__unit">${stockText}</span>` : ''}
     </div>`;
   }
