@@ -449,9 +449,8 @@
 
 <script>
   /* ================= НАСТРОЙКА БАЗЫ ДАННЫХ ================= */
-  // Используем надежный метод экспорта gviz/tq, который работает без публикации в интернете
-  // (достаточно, чтобы таблица была открыта для чтения по ссылке)
-  const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1tcat8Mlo8Fq31xRMWY9AJs84mcpH-AKhiEv6VvAbBn0/gviz/tq?tqx=out:csv";
+  // Новая ссылка на опубликованную таблицу
+  const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ01jTnRRI04j3aUhhVqkxB3Mt1WU9CAx4Fvx-k79Evjhn_QrHUclp6UMBkCExcak3xpzlsFevi6Ges/pub?output=csv";
   /* ========================================================= */
 
   const DEFAULT_COLORS = {
@@ -510,7 +509,6 @@
       } else if ((char === '\n' || char === '\r') && !inQuotes) {
         if (char === '\r' && nextChar === '\n') i++;
         currentLine.push(currentCell);
-        // Добавляем строку, если в ней есть хоть какие-то данные
         if (currentLine.length > 1 || currentLine[0] !== '') {
           lines.push(currentLine);
         }
@@ -535,38 +533,54 @@
       
       const csvText = await response.text();
 
-      // Проверяем, не вернул ли Google страницу входа
+      // Проверяем, не вернул ли Google страницу входа или ошибки
       if (csvText.trim().startsWith('<!DOCTYPE html>') || csvText.includes('<html')) {
-        throw new Error('Нет доступа к таблице. Убедитесь, что в настройках доступа выбрано "Все, у кого есть ссылка".');
+        throw new Error('Google вернул HTML-страницу вместо CSV. Проверьте, что таблица опубликована как CSV и доступна по ссылке.');
       }
 
       const rows = parseCSV(csvText);
-      if (rows.length === 0) throw new Error('Таблица пуста.');
+      if (rows.length === 0) throw new Error('Таблица пуста или не удалось прочитать CSV.');
 
-      // Ищем строку с заголовками (ищем совпадение 'id' и 'name_ru' в строке)
-      const headerRowIndex = rows.findIndex(row => {
-        const r = row.map(c => String(c).trim().toLowerCase());
-        return r.includes('id') && (r.includes('name_ru') || r.includes('name'));
-      });
+      // Ищем строку с заголовками в первых 10 строках
+      let headerRowIndex = -1;
+      for (let i = 0; i < Math.min(rows.length, 10); i++) {
+        const row = rows[i].map(c => String(c).trim().toLowerCase().replace(/^\uFEFF/, ''));
+        // Ищем хотя бы 'id' или 'name_ru' или 'наименование'
+        if (row.includes('id') || row.includes('name_ru') || row.includes('наименование') || row.includes('название')) {
+          headerRowIndex = i;
+          break;
+        }
+      }
 
       if (headerRowIndex === -1) {
-         throw new Error('Не найдены заголовки (id, name_ru). Проверьте первую строку таблицы.');
+        // Для отладки показываем первые строки
+        const preview = rows.slice(0, 3).map(r => r.join(' | ')).join('\n');
+        throw new Error('Не найдены заголовки (id, name_ru). Первые строки таблицы:\n' + preview);
       }
 
       const headers = rows[headerRowIndex].map(h => String(h).trim().toLowerCase().replace(/^\uFEFF/, ''));
       const dataRows = rows.slice(headerRowIndex + 1);
 
+      // Поиск индексов колонок с учетом возможных альтернативных названий
+      const findIdx = (possibleNames) => {
+        for (const name of possibleNames) {
+          const idx = headers.indexOf(name);
+          if (idx !== -1) return idx;
+        }
+        return -1;
+      };
+
       const idx = {
-        id: headers.indexOf('id'),
-        name: headers.indexOf('name_ru') !== -1 ? headers.indexOf('name_ru') : headers.indexOf('name'),
-        cat: headers.indexOf('category'),
-        asm: headers.indexOf('assortment'),
-        unit: headers.indexOf('unit'),
-        man: headers.indexOf('manufacturer'),
-        price: headers.indexOf('desc') !== -1 ? headers.indexOf('desc') : headers.indexOf('price'),
-        img1: headers.indexOf('img1'),
-        img2: headers.indexOf('img2'),
-        img3: headers.indexOf('img3')
+        id: findIdx(['id', 'код', 'артикул']),
+        name: findIdx(['name_ru', 'name', 'наименование', 'название']),
+        cat: findIdx(['category', 'категория', 'раздел']),
+        asm: findIdx(['assortment', 'ассортимент', 'описание']),
+        unit: findIdx(['unit', 'ед. изм.', 'единица', 'ед.изм']),
+        man: findIdx(['manufacturer', 'производитель', 'поставщик']),
+        price: findIdx(['desc', 'price', 'цена', 'стоимость']),
+        img1: findIdx(['img1', 'фото1', 'image1']),
+        img2: findIdx(['img2', 'фото2', 'image2']),
+        img3: findIdx(['img3', 'фото3', 'image3'])
       };
 
       PRODUCTS = dataRows.map(row => {
@@ -614,7 +628,7 @@
       console.error('Ошибка загрузки:', error);
       els.grid.innerHTML = `<div class="empty">
         <div class="empty__icon">⚠️</div>
-        <p style="color: #ff4b2b; font-weight: bold;">${error.message}</p>
+        <p style="color: #ff4b2b; font-weight: bold; white-space: pre-wrap;">${error.message}</p>
         <p>Проверьте настройки доступа к таблице (кнопка «Поделиться» -> «Все, у кого есть ссылка»).</p>
       </div>`;
     }
