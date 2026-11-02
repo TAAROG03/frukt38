@@ -524,6 +524,22 @@
     return lines;
   }
 
+  /* ================= УМНОЕ ОПРЕДЕЛЕНИЕ КАТЕГОРИИ ================= */
+  function normalizeCategory(rawCat, name) {
+    const c = String(rawCat || '').toLowerCase().trim();
+    if (c === 'fruits' || c === 'фрукты' || c === 'fruit') return 'fruits';
+    if (c === 'vegetables' || c === 'овощи' || c === 'vegetable') return 'vegetables';
+    if (c === 'greens' || c === 'зелень' || c === 'green') return 'greens';
+    
+    // Если категория не указана или указана неверно — пытаемся угадать по названию
+    const n = String(name || '').toLowerCase();
+    if (n.match(/яблок|груш|апельс|мандар|банан|виногр|лимон|киви|персик|абрикос|слив|арбуз|дын|ананас|манго|помело|марак|хурма|гранат|айва|лайм|нектарин|черешн|вишн/)) return 'fruits';
+    if (n.match(/помидор|томат|огур|картоф|морков|лук(?![а-я]* зел)|перец|капуст|баклаж|кабач|свекл|редис|тыкв|брокколи|дайкон|сельдер|горох|кукуруз|чеснок|артишок|спарж/)) return 'vegetables';
+    if (n.match(/укроп|петруш|кинз|базил|салат|руккол|шпинат|зелен|мята|мелисс|тархун|щавель|лук зел/)) return 'greens';
+    
+    return 'fruits'; // По умолчанию
+  }
+
   /* ================= ЗАГРУЗКА ДАННЫХ ================= */
   async function loadData() {
     try {
@@ -567,9 +583,9 @@
       const idx = {
         id: findIdx(['id', 'код', 'артикул']),
         name: findIdx(['name_ru', 'name', 'наименование', 'название']),
-        cat: findIdx(['category', 'категория', 'раздел']),
+        cat: findIdx(['category', 'категория', 'раздел', 'тип', 'group', 'вид']),
         asm: findIdx(['assortment', 'ассортимент', 'описание']),
-        stock: findIdx(['unit', 'ед. изм', 'единица', 'ед.изм', 'вес', 'фасовка', 'наличие']),
+        stock: findIdx(['unit', 'ед. изм', 'единица', 'ед.изм', 'вес', 'фасовка', 'наличие', 'кол-во', 'количество', 'остаток']),
         man: findIdx(['manufacturer', 'производитель', 'поставщик']),
         price: findIdx(['desc', 'price', 'цена', 'стоимость', 'прайс']),
         img1: findIdx(['img1', 'фото1', 'image1']),
@@ -585,12 +601,14 @@
         
         if (!id && !name) return null;
 
-        const cat = getVal(idx.cat).toLowerCase() || 'fruits';
+        const rawCat = getVal(idx.cat);
+        // Применяем умное определение категории
+        const cat = normalizeCategory(rawCat, name);
+        
         const assortment = getVal(idx.asm);
-        const stock = getVal(idx.stock); // Наличие (вес/кол-во)
+        const stock = getVal(idx.stock); 
         const manufacturer = getVal(idx.man);
         
-        // Очищаем цену
         const rawPrice = getVal(idx.price);
         const cleanPrice = rawPrice.replace(/[^\d.,]/g, '').replace(',', '.');
         const price = !isNaN(parseFloat(cleanPrice)) && cleanPrice !== '' ? parseFloat(cleanPrice) : null;
@@ -751,10 +769,8 @@
     if (!p) return;
     currentProduct = p;
 
-    // Логика наличия
     const availability = p.stock ? p.stock : 'Нет в наличии';
 
-    // Логика цены (выводим цену за кг, если она есть, иначе "Скоро")
     let priceBlock;
     if (p.price !== null) {
       const formattedPrice = new Intl.NumberFormat('ru-RU').format(p.price);
