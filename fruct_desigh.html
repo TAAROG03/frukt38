@@ -139,7 +139,7 @@
     border-color: var(--green);
   }
 
-  /* ---------- Hero (Обновленный) ---------- */
+  /* ---------- Hero ---------- */
   .hero {
     position: relative;
     padding: 60px 20px 80px;
@@ -147,7 +147,7 @@
     background: var(--hero-bg);
     border-bottom: 1px solid var(--border);
     transition: background 0.3s ease, border-color 0.3s ease;
-    flex: 1; /* Чтобы футер прижимался к низу */
+    flex: 1;
   }
   
   .hero__bg-fruit {
@@ -166,7 +166,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 50px;
+    gap: 40px;
   }
 
   .hero__content {
@@ -226,25 +226,25 @@
   .hero__search-btn:active { transform: scale(0.97); }
 
   .hero__image-wrapper {
-    flex: 0 0 400px;
+    flex: 0 0 380px;
     max-width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
   }
   
+  /* ИСПРАВЛЕННЫЙ КРУГЛЫЙ ЛОГОТИП */
   .hero__circle-logo {
     width: 100%;
-    max-width: 380px;
-    border-radius: 50%;
-    box-shadow: 0 20px 50px rgba(44, 143, 22, 0.15);
+    max-width: 360px;
     animation: floatLogo 6s ease-in-out infinite;
-    background: #fff;
+    /* Убрали белый фон и жесткие границы */
+    filter: drop-shadow(0 25px 40px rgba(44, 143, 22, 0.15));
   }
   
   [data-theme="dark"] .hero__circle-logo {
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-    filter: brightness(0.9); /* Чтобы не слепило в темноте */
+    /* В темной теме используем черную тень */
+    filter: drop-shadow(0 25px 40px rgba(0, 0, 0, 0.5)) brightness(0.95);
   }
 
   @keyframes floatLogo {
@@ -544,7 +544,7 @@
     transition: opacity 0.3s, filter 0.3s;
   }
   [data-theme="dark"] .footer__logo {
-    filter: brightness(1.2); /* В темной теме делаем логотип чуть ярче */
+    filter: brightness(1.2);
   }
   .footer__logo:hover {
     opacity: 1;
@@ -572,10 +572,10 @@
       margin: 30px auto 0;
     }
     .hero__image-wrapper {
-      flex: 0 0 300px;
+      flex: 0 0 280px;
     }
     .hero__circle-logo {
-      max-width: 280px;
+      max-width: 260px;
     }
   }
 
