@@ -233,17 +233,15 @@
     align-items: center;
   }
   
-  /* ИСПРАВЛЕННЫЙ КРУГЛЫЙ ЛОГОТИП */
   .hero__circle-logo {
     width: 100%;
     max-width: 360px;
+    border-radius: 50%;
     animation: floatLogo 6s ease-in-out infinite;
-    /* Убрали белый фон и жесткие границы */
     filter: drop-shadow(0 25px 40px rgba(44, 143, 22, 0.15));
   }
   
   [data-theme="dark"] .hero__circle-logo {
-    /* В темной теме используем черную тень */
     filter: drop-shadow(0 25px 40px rgba(0, 0, 0, 0.5)) brightness(0.95);
   }
 
@@ -258,6 +256,7 @@
     max-width: 1180px; margin: 0 auto;
     padding: 70px 20px 100px;
     width: 100%;
+    flex: 1;
   }
   .catalog-head {
     text-align: center; margin-bottom: 40px;
@@ -331,7 +330,7 @@
   /* Слайд-шоу */
   .slider {
     position: relative; overflow: hidden;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 4 / 5; /* ИЗМЕНЕНО: Теперь карточки вертикальные, фото не режется */
     background: var(--slide-bg);
     touch-action: pan-y; user-select: none;
     border-radius: 12px 12px 0 0;
@@ -615,14 +614,14 @@
 
 <header class="header">
   <div class="header__inner">
-    <a href="#" class="logo">
-      <!-- Первый логотип (горизонтальный) -->
+    <a href="index.html" class="logo">
       <img src="logo.png" alt="Фруктовая лавка" class="logo__img">
     </a>
     <div class="header__nav-group">
       <nav class="nav">
-        <a href="#" class="nav__link is-active">Главная</a>
-        <a href="#catalog" class="nav__link">Каталог</a>
+        <a href="index.html" class="nav__link is-active">Главная</a>
+        <a href="about.html" class="nav__link">О нас</a>
+        <a href="contacts.html" class="nav__link">Контакты</a>
       </nav>
       <button id="themeToggle" class="theme-toggle" aria-label="Сменить тему">🌙</button>
     </div>
@@ -649,8 +648,7 @@
     </div>
 
     <div class="hero__image-wrapper">
-      <!-- Второй логотип (круглый) -->
-      <img src="logo-circle.png" alt="Фрукты, овощи и зелень" class="hero__circle-logo">
+      <img src="logo-circle.png?v=2" alt="Фрукты, овощи и зелень" class="hero__circle-logo">
     </div>
   </div>
 </section>
@@ -678,7 +676,6 @@
 
 <footer class="footer">
   <div class="footer__inner">
-    <!-- Третий логотип (вертикальный) -->
     <img src="logo-vertical.png" alt="Фруктовая лавка" class="footer__logo">
     <p class="footer__text">© 2026 Фруктовая лавка. Оптовые поставки свежих фруктов, овощей и зелени.</p>
   </div>
@@ -912,7 +909,7 @@
   function slideHTML(im) {
     if (im.url && im.url.startsWith('http')) {
       return `<div class="slide" style="--c1:${im.c1};--c2:${im.c2}">
-        <img src="${im.url}" alt="Фото товара" style="width:100%; height:100%; object-fit:cover; border-radius:12px 12px 0 0;" loading="lazy">
+        <img src="${im.url}" alt="Фото товара" style="width:100%; height:100%; object-fit:cover;" loading="lazy">
       </div>`;
     }
     return `<div class="slide" style="--c1:${im.c1};--c2:${im.c2}">
