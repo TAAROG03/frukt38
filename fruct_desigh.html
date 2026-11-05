@@ -157,7 +157,7 @@
     border-bottom: 1px solid var(--border);
     transition: background 0.3s ease, border-color 0.3s ease;
     flex: 1;
-    perspective: 1000px; /* Для 3D эффекта */
+    perspective: 1000px;
   }
   
   .hero__bg-fruit {
@@ -185,16 +185,14 @@
   .hero__content {
     flex: 1;
     max-width: 600px;
-    transform: translateZ(50px); /* Выдвигаем текст вперед */
+    transform: translateZ(50px);
   }
 
-  /* Анимированный градиентный текст */
   .hero__title {
     font-family: 'Playfair Display', serif;
     font-size: clamp(34px, 5vw, 52px);
     font-weight: 800; letter-spacing: -0.02em;
     line-height: 1.15; 
-    
     background: linear-gradient(120deg, var(--text) 20%, var(--green) 50%, var(--text) 80%);
     background-size: 200% auto;
     color: transparent;
@@ -211,9 +209,7 @@
     background-clip: text;
   }
 
-  @keyframes shineText {
-    to { background-position: 200% center; }
-  }
+  @keyframes shineText { to { background-position: 200% center; } }
 
   .hero__sub {
     margin-top: 18px;
@@ -226,7 +222,7 @@
     max-width: 640px; margin: 40px 0 0 0;
     border-radius: 999px;
   }
-  /* Радужное свечение при фокусе */
+  
   .hero__search::before {
     content: ''; position: absolute; inset: -4px; border-radius: 999px; z-index: -1;
     background: linear-gradient(90deg, #ff416c, #f7971e, #a8e063, #56ab2f, #4ade80);
@@ -235,9 +231,7 @@
     transition: opacity 0.3s ease;
     animation: glowGradient 3s linear infinite;
   }
-  .hero__search:focus-within::before {
-    opacity: 0.6;
-  }
+  .hero__search:focus-within::before { opacity: 0.6; }
 
   @keyframes glowGradient {
     0% { background-position: 0% 50%; }
@@ -260,11 +254,10 @@
   }
   .hero__search input::placeholder { color: var(--muted); }
   .hero__search input:focus {
-    border-color: transparent; /* Убираем жесткую рамку, оставляем свечение */
+    border-color: transparent;
     box-shadow: var(--shadow-hover);
   }
   
-  /* Кнопка с бликом */
   .hero__search-btn {
     position: absolute; right: 8px; top: 8px; bottom: 8px;
     padding: 0 36px; border: none; border-radius: 999px; cursor: pointer;
@@ -333,6 +326,7 @@
     color: var(--muted); font-size: 15px; margin-top: 10px; font-weight: 500;
   }
 
+  /* Обновленный тулбар с кнопкой Excel */
   .toolbar {
     display: flex; align-items: center; justify-content: space-between; gap: 16px;
     flex-wrap: wrap; margin-bottom: 36px;
@@ -350,6 +344,25 @@
   }
   .chip:hover { color: var(--text); background: var(--bg); }
   .chip.is-active { background: var(--green); color: #fff; box-shadow: 0 4px 12px rgba(44, 143, 22, 0.2); }
+
+  .toolbar-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .btn-excel {
+    display: flex; align-items: center; justify-content: center;
+    padding: 10px 20px; border-radius: 999px;
+    background: #107c41; /* Цвет Excel */
+    color: #fff; border: none; cursor: pointer;
+    font-size: 14px; font-weight: 600;
+    transition: background 0.2s, transform 0.1s;
+    white-space: nowrap;
+  }
+  .btn-excel:hover { background: #0c5e31; transform: translateY(-1px); }
+  .btn-excel:active { transform: scale(0.97); }
+  .btn-excel svg { margin-right: 8px; }
 
   .sort {
     padding: 10px 20px; border-radius: 999px;
@@ -527,8 +540,9 @@
     .hero__search-icon { left: 18px; font-size: 16px; }
     .hero__search-btn { display: none; }
     .toolbar { flex-direction: column; align-items: stretch; border-radius: 24px; padding: 12px; }
+    .toolbar-actions { width: 100%; flex-direction: column; }
     .chips { justify-content: center; }
-    .sort { width: 100%; }
+    .sort, .btn-excel { width: 100%; justify-content: center; }
     .grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
     .modal__card { grid-template-columns: 1fr; border-radius: 24px; }
     .m-media { min-height: 280px; }
@@ -603,11 +617,21 @@
 
   <div class="toolbar">
     <div id="chips" class="chips" role="tablist" aria-label="Категории"></div>
-    <select id="sort" class="sort" aria-label="Сортировка">
-      <option value="name">По названию</option>
-      <option value="manufacturer">По производителю</option>
-      <option value="assortment">По описанию</option>
-    </select>
+    
+    <div class="toolbar-actions">
+      <!-- КНОПКА СКАЧИВАНИЯ В EXCEL -->
+      <button id="downloadExcelBtn" class="btn-excel" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Скачать в Excel
+      </button>
+      <!-- КОНЕЦ КНОПКИ -->
+      
+      <select id="sort" class="sort" aria-label="Сортировка">
+        <option value="name">По названию</option>
+        <option value="manufacturer">По производителю</option>
+        <option value="assortment">По описанию</option>
+      </select>
+    </div>
   </div>
 
   <div id="count" class="count"></div>
@@ -628,6 +652,9 @@
 <div id="modal" class="modal" role="dialog" aria-modal="true" aria-label="Информация о товаре">
   <div id="modalBody" class="modal__card"></div>
 </div>
+
+<!-- ПОДКЛЮЧЕНИЕ БИБЛИОТЕКИ EXCEL (перенесено вниз для скорости загрузки) -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
   /* ================= СМЕНА ТЕМЫ ================= */
@@ -1014,13 +1041,11 @@
 
   if (heroSection && window.matchMedia('(hover: hover)').matches) {
     heroSection.addEventListener('mousemove', (e) => {
-      const x = (e.clientX / window.innerWidth - 0.5) * 30; // Смещение от -15 до 15
+      const x = (e.clientX / window.innerWidth - 0.5) * 30;
       const y = (e.clientY / window.innerHeight - 0.5) * 30;
       
-      // Двигаем логотип
       heroLogoWrapper.style.transform = `translate(${x * 0.8}px, ${y * 0.8}px)`;
       
-      // Двигаем фрукты (у них разные скорости для объема)
       bgFruits.forEach((fruit, index) => {
         const speed = index % 2 === 0 ? 1.5 : -1.5;
         fruit.style.transform = `translate(${x * speed}px, ${y * speed}px)`;
@@ -1028,7 +1053,6 @@
     });
 
     heroSection.addEventListener('mouseleave', () => {
-      // Возвращаем все на место
       heroLogoWrapper.style.transform = `translate(0, 0)`;
       bgFruits.forEach(fruit => fruit.style.transform = `translate(0, 0)`);
     });
@@ -1046,6 +1070,49 @@
   els.backToTop.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
+
+  /* ================= СКАЧИВАНИЕ В EXCEL ================= */
+  document.getElementById('downloadExcelBtn').addEventListener('click', () => {
+    // Проверяем, загрузилась ли библиотека Excel
+    if (typeof XLSX === 'undefined') {
+      alert("Библиотека для скачивания Excel не загрузилась. Проверьте интернет-соединение и обновите страницу.");
+      return;
+    }
+
+    const items = getVisible();
+    if (!items.length) {
+      alert("Нет товаров для выгрузки. Измените фильтры поиска.");
+      return;
+    }
+
+    const dataToExport = items.map(p => {
+      let catName = 'Фрукты';
+      if (p.category === 'vegetables') catName = 'Овощи';
+      if (p.category === 'greens') catName = 'Зелень';
+
+      return {
+        "Наименование": p.name,
+        "Категория": catName,
+        "Описание": p.assortment || '',
+        "Свободный остаток": p.stock || 'Нет в наличии',
+        "Цена (руб/кг)": p.price !== null ? p.price : 'Скоро',
+        "Производитель": p.manufacturer || ''
+      };
+    });
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+
+    ws['!cols'] = [
+      { wch: 35 }, { wch: 15 }, { wch: 40 }, { wch: 20 }, { wch: 15 }, { wch: 30 }
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws, "Прайс");
+
+    const date = new Date().toLocaleDateString('ru-RU').replace(/\./g, '-');
+    XLSX.writeFile(wb, `Прайс_Фруктовая_лавка_${date}.xlsx`);
+  });
+  /* ======================================================= */
 
   /* ================= Старт ================= */
   renderChips();
