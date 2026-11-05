@@ -330,7 +330,7 @@
   /* Слайд-шоу */
   .slider {
     position: relative; overflow: hidden;
-    aspect-ratio: 4 / 5; /* ИЗМЕНЕНО: Теперь карточки вертикальные, фото не режется */
+    aspect-ratio: 4 / 5;
     background: var(--slide-bg);
     touch-action: pan-y; user-select: none;
     border-radius: 12px 12px 0 0;
@@ -618,10 +618,9 @@
       <img src="logo.png" alt="Фруктовая лавка" class="logo__img">
     </a>
     <div class="header__nav-group">
+      <!-- ИЗМЕНЕНИЕ: Оставили только Главную -->
       <nav class="nav">
         <a href="index.html" class="nav__link is-active">Главная</a>
-        <a href="about.html" class="nav__link">О нас</a>
-        <a href="contacts.html" class="nav__link">Контакты</a>
       </nav>
       <button id="themeToggle" class="theme-toggle" aria-label="Сменить тему">🌙</button>
     </div>
