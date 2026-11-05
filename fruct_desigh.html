@@ -969,6 +969,13 @@
   ];
   const CAT_NAME = Object.fromEntries(CATEGORIES.map(c => [c.id, c.name]));
 
+  // Вспомогательная функция: проверяет, есть ли товар в наличии
+  function hasStock(p) {
+    if (!p.stock) return false;
+    const s = p.stock.toLowerCase().trim();
+    return s !== '' && s !== 'нет' && s !== 'нет в наличии';
+  }
+
   function getVisible() {
     const q = state.query.trim().toLowerCase();
     const list = PRODUCTS.filter(p => {
@@ -981,9 +988,20 @@
       return byCat && byQuery;
     });
 
+    // 1. Сначала применяем выбранную пользователем сортировку
     if (state.sort === 'name') list.sort((a, b) => a.name.localeCompare(b.name, 'ru'));
     if (state.sort === 'manufacturer') list.sort((a, b) => a.manufacturer.localeCompare(b.manufacturer, 'ru'));
     if (state.sort === 'assortment') list.sort((a, b) => a.assortment.localeCompare(b.assortment, 'ru'));
+
+    // 2. Приоритетная сортировка: товары в наличии всегда выше
+    list.sort((a, b) => {
+      const aStock = hasStock(a);
+      const bStock = hasStock(b);
+      if (aStock && !bStock) return -1; // a выше
+      if (!aStock && bStock) return 1;  // b выше
+      return 0; // если оба в наличии или оба нет — оставляем как есть
+    });
+
     return list;
   }
 
