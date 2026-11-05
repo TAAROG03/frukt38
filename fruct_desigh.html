@@ -326,7 +326,6 @@
     color: var(--muted); font-size: 15px; margin-top: 10px; font-weight: 500;
   }
 
-  /* Обновленный тулбар с кнопкой Excel */
   .toolbar {
     display: flex; align-items: center; justify-content: space-between; gap: 16px;
     flex-wrap: wrap; margin-bottom: 36px;
@@ -653,7 +652,7 @@
   <div id="modalBody" class="modal__card"></div>
 </div>
 
-<!-- ПОДКЛЮЧЕНИЕ БИБЛИОТЕКИ EXCEL (перенесено вниз для скорости загрузки) -->
+<!-- ПОДКЛЮЧЕНИЕ БИБЛИОТЕКИ EXCEL -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
@@ -1073,7 +1072,6 @@
 
   /* ================= СКАЧИВАНИЕ В EXCEL ================= */
   document.getElementById('downloadExcelBtn').addEventListener('click', () => {
-    // Проверяем, загрузилась ли библиотека Excel
     if (typeof XLSX === 'undefined') {
       alert("Библиотека для скачивания Excel не загрузилась. Проверьте интернет-соединение и обновите страницу.");
       return;
@@ -1085,26 +1083,23 @@
       return;
     }
 
+    // Формируем массив объектов ТОЛЬКО с тремя колонками
     const dataToExport = items.map(p => {
-      let catName = 'Фрукты';
-      if (p.category === 'vegetables') catName = 'Овощи';
-      if (p.category === 'greens') catName = 'Зелень';
-
       return {
         "Наименование": p.name,
-        "Категория": catName,
-        "Описание": p.assortment || '',
-        "Свободный остаток": p.stock || 'Нет в наличии',
         "Цена (руб/кг)": p.price !== null ? p.price : 'Скоро',
-        "Производитель": p.manufacturer || ''
+        "Свободный остаток": p.stock || 'Нет в наличии'
       };
     });
 
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(dataToExport);
 
+    // Настраиваем ширину колонок для трех столбцов
     ws['!cols'] = [
-      { wch: 35 }, { wch: 15 }, { wch: 40 }, { wch: 20 }, { wch: 15 }, { wch: 30 }
+      { wch: 40 }, // Наименование
+      { wch: 20 }, // Цена
+      { wch: 20 }  // Остаток
     ];
 
     XLSX.utils.book_append_sheet(wb, ws, "Прайс");
