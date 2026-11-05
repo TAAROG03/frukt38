@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Фруктовая лавка — фрукты, овощи и зелень оптом</title>
 
-<!-- ИКОНКА ВКЛАДКИ (SVG ЭМОДЗИ) -->
+<!-- ИКОНКА ВКЛАДКИ -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍏</text></svg>">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,6 +30,8 @@
       radial-gradient(circle at 50% 80%, rgba(44, 143, 22, 0.12), transparent 50%),
       #f8fbf7;
     --slide-bg: #fdfdfd;
+    --skeleton-base: #e1ebd9;
+    --skeleton-shine: #f4f7f4;
   }
 
   /* ТЕМНАЯ ТЕМА */
@@ -50,6 +52,8 @@
       radial-gradient(circle at 50% 80%, rgba(44, 143, 22, 0.15), transparent 50%),
       #121610;
     --slide-bg: #222c1e;
+    --skeleton-base: #2a3625;
+    --skeleton-shine: #3a4b34;
   }
 
   *, *::before, *::after { box-sizing: border-box; }
@@ -64,6 +68,7 @@
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    overflow-x: hidden;
   }
   body.is-locked { overflow: hidden; }
   button, input, select { font: inherit; color: inherit; }
@@ -158,6 +163,7 @@
     position: absolute; font-size: 140px; opacity: 0.05;
     pointer-events: none; user-select: none;
     filter: drop-shadow(0 20px 30px rgba(0,0,0,0.1));
+    will-change: transform; /* Для параллакса */
   }
   .hero__bg-fruit--1 { top: 10%; left: 5%; transform: rotate(-15deg); }
   .hero__bg-fruit--2 { top: 15%; right: 45%; transform: rotate(20deg); }
@@ -235,6 +241,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    will-change: transform; /* Для параллакса */
   }
   
   .hero__circle-logo {
@@ -318,6 +325,13 @@
     position: relative;
     transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s, background-color 0.3s;
     border: 1px solid var(--border);
+    /* Для анимации появления */
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  .card.is-visible {
+    opacity: 1;
+    transform: translateY(0);
   }
   .card:hover {
     transform: translateY(-10px) scale(1.01);
@@ -330,6 +344,27 @@
   .card--fruits::before { background: linear-gradient(90deg, #ff416c, #ff4b2b); }
   .card--vegetables::before { background: linear-gradient(90deg, #f7971e, #ffd200); }
   .card--greens::before { background: linear-gradient(90deg, #56ab2f, #a8e063); }
+
+  /* Скелетон-загрузка */
+  .skeleton-card {
+    pointer-events: none;
+    opacity: 1;
+    transform: none;
+  }
+  .skeleton {
+    background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-shine) 50%, var(--skeleton-base) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 8px;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .skeleton-img { width: 100%; aspect-ratio: 4 / 5; border-radius: 12px 12px 0 0; }
+  .skeleton-line { height: 16px; margin-bottom: 10px; width: 80%; }
+  .skeleton-line.short { width: 50%; }
+  .skeleton-title { height: 24px; margin: 20px 0 10px; width: 70%; }
 
   /* Слайд-шоу */
   .slider {
@@ -558,6 +593,38 @@
     font-weight: 500;
   }
 
+  /* ---------- Кнопка "Наверх" ---------- */
+  .back-to-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--green);
+    color: #fff;
+    border: none;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(44, 143, 22, 0.3);
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 40;
+  }
+  .back-to-top.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .back-to-top:hover {
+    background: var(--green-hover);
+    transform: translateY(-5px);
+  }
+
   /* Адаптив */
   @media (max-width: 950px) {
     .hero__inner {
@@ -600,6 +667,7 @@
     .hero__title { font-size: 32px; }
     .header__nav-group { width: 100%; justify-content: space-between; }
     .footer__logo { height: 120px; }
+    .back-to-top { bottom: 20px; right: 20px; width: 44px; height: 44px; }
   }
   @media (max-width: 500px) {
     .header__inner { flex-direction: column; gap: 15px; padding-top: 15px; padding-bottom: 15px; }
@@ -630,11 +698,11 @@
   </div>
 </header>
 
-<section class="hero">
-  <span class="hero__bg-fruit hero__bg-fruit--1">🍎</span>
-  <span class="hero__bg-fruit hero__bg-fruit--2">🍒</span>
-  <span class="hero__bg-fruit hero__bg-fruit--3">🍋</span>
-  <span class="hero__bg-fruit hero__bg-fruit--4">🍇</span>
+<section class="hero" id="hero-section">
+  <span class="hero__bg-fruit hero__bg-fruit--1" data-speed="0.1">🍎</span>
+  <span class="hero__bg-fruit hero__bg-fruit--2" data-speed="-0.15">🍒</span>
+  <span class="hero__bg-fruit hero__bg-fruit--3" data-speed="0.05">🍋</span>
+  <span class="hero__bg-fruit hero__bg-fruit--4" data-speed="-0.08">🍇</span>
 
   <div class="hero__inner">
     <div class="hero__content">
@@ -649,7 +717,7 @@
       </div>
     </div>
 
-    <div class="hero__image-wrapper">
+    <div class="hero__image-wrapper" data-speed="0.05">
       <img src="logo-circle.png?v=2" alt="Фрукты, овощи и зелень" class="hero__circle-logo">
     </div>
   </div>
@@ -672,7 +740,7 @@
 
   <div id="count" class="count"></div>
   <div id="grid" class="grid">
-    <div class="empty"><div class="empty__icon">⏳</div><p>Загрузка каталога...</p></div>
+    <!-- Сюда вставятся скелетоны -->
   </div>
 </main>
 
@@ -682,6 +750,8 @@
     <p class="footer__text">© 2026 Фруктовая лавка. Оптовые поставки свежих фруктов, овощей и зелени.</p>
   </div>
 </footer>
+
+<button id="backToTop" class="back-to-top" aria-label="Наверх">↑</button>
 
 <div id="modal" class="modal" role="dialog" aria-modal="true" aria-label="Информация о товаре">
   <div id="modalBody" class="modal__card"></div>
@@ -695,45 +765,28 @@
   function applyTheme(theme) {
     htmlElement.setAttribute('data-theme', theme);
     localStorage.setItem('fruitShopTheme', theme);
-    
-    if (theme === 'dark') {
-      themeToggleBtn.textContent = '☀️';
-    } else {
-      themeToggleBtn.textContent = '🌙';
-    }
+    if (theme === 'dark') themeToggleBtn.textContent = '☀️';
+    else themeToggleBtn.textContent = '🌙';
   }
 
   const savedTheme = localStorage.getItem('fruitShopTheme');
-  if (savedTheme) {
-    applyTheme(savedTheme);
-  } else {
+  if (savedTheme) applyTheme(savedTheme);
+  else {
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     applyTheme(prefersDark ? 'dark' : 'light');
   }
 
   themeToggleBtn.addEventListener('click', () => {
     const currentTheme = htmlElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    applyTheme(newTheme);
+    applyTheme(currentTheme === 'light' ? 'dark' : 'light');
   });
-  /* ================================================= */
-
 
   /* ================= НАСТРОЙКА БАЗЫ ДАННЫХ ================= */
   const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1tcat8Mlo8Fq31xRMWY9AJs84mcpH-AKhiEv6VvAbBn0/export?format=csv";
   /* ========================================================= */
 
-  const DEFAULT_COLORS = {
-    fruits: ['#ff416c', '#ff4b2b'],
-    vegetables: ['#f7971e', '#ffd200'],
-    greens: ['#56ab2f', '#a8e063']
-  };
-
-  const DEFAULT_EMOJI = {
-    fruits: '🍎',
-    vegetables: '🥦',
-    greens: '🌿'
-  };
+  const DEFAULT_COLORS = { fruits: ['#ff416c', '#ff4b2b'], vegetables: ['#f7971e', '#ffd200'], greens: ['#56ab2f', '#a8e063'] };
+  const DEFAULT_EMOJI = { fruits: '🍎', vegetables: '🥦', greens: '🌿' };
 
   let PRODUCTS = []; 
   const state = { query: '', category: 'all', sort: 'name' };
@@ -742,6 +795,13 @@
   let pointerStart = null;
 
   const $ = s => document.querySelector(s);
+  
+  const els = {
+    grid: $('#grid'), count: $('#count'), search: $('#search'),
+    chips: $('#chips'), sort: $('#sort'), modal: $('#modal'),
+    modalBody: $('#modalBody'), catalog: $('#catalog'),
+    backToTop: $('#backToTop')
+  };
 
   function plural(n, forms) {
     const a = n % 10, b = n % 100;
@@ -749,12 +809,6 @@
     if (a >= 2 && a <= 4 && (b < 10 || b >= 20)) return forms[1];
     return forms[2];
   }
-
-  const els = {
-    grid: $('#grid'), count: $('#count'), search: $('#search'),
-    chips: $('#chips'), sort: $('#sort'), modal: $('#modal'),
-    modalBody: $('#modalBody'), catalog: $('#catalog'),
-  };
 
   /* ================= ПАРСЕР CSV ================= */
   function parseCSV(text) {
@@ -764,177 +818,144 @@
     let inQuotes = false;
 
     for (let i = 0; i < text.length; i++) {
-      const char = text[i];
-      const nextChar = text[i + 1];
-
+      const char = text[i], nextChar = text[i + 1];
       if (char === '"') {
-        if (inQuotes && nextChar === '"') {
-          currentCell += '"'; i++;
-        } else {
-          inQuotes = !inQuotes;
-        }
+        if (inQuotes && nextChar === '"') { currentCell += '"'; i++; }
+        else { inQuotes = !inQuotes; }
       } else if (char === ',' && !inQuotes) {
-        currentLine.push(currentCell);
-        currentCell = '';
+        currentLine.push(currentCell); currentCell = '';
       } else if ((char === '\n' || char === '\r') && !inQuotes) {
         if (char === '\r' && nextChar === '\n') i++;
         currentLine.push(currentCell);
-        if (currentLine.length > 1 || currentLine[0] !== '') {
-          lines.push(currentLine);
-        }
-        currentLine = [];
-        currentCell = '';
-      } else {
-        currentCell += char;
-      }
+        if (currentLine.length > 1 || currentLine[0] !== '') lines.push(currentLine);
+        currentLine = []; currentCell = '';
+      } else { currentCell += char; }
     }
     if (currentCell !== '' || currentLine.length > 0) {
-      currentLine.push(currentCell);
-      lines.push(currentLine);
+      currentLine.push(currentCell); lines.push(currentLine);
     }
     return lines;
   }
 
   /* ================= ЗАГРУЗКА ДАННЫХ ================= */
   async function loadData() {
+    // Показываем скелетоны перед загрузкой
+    renderSkeletons();
+
     try {
       const noCacheUrl = GOOGLE_SHEET_CSV_URL + '&_=' + new Date().getTime();
       const response = await fetch(noCacheUrl);
-      if (!response.ok) throw new Error('Ошибка сети (HTTP ' + response.status + ')');
+      if (!response.ok) throw new Error('Ошибка сети');
       
       const csvText = await response.text();
-
-      if (csvText.trim().startsWith('<!DOCTYPE html>') || csvText.includes('<html')) {
-        throw new Error('Google вернул HTML-страницу вместо CSV. Проверьте доступ к таблице.');
-      }
+      if (csvText.trim().startsWith('<!DOCTYPE html>')) throw new Error('Ошибка доступа к таблице.');
 
       const rows = parseCSV(csvText);
-      if (rows.length === 0) throw new Error('Таблица пуста.');
-
       let headerRowIndex = -1;
       for (let i = 0; i < Math.min(rows.length, 10); i++) {
         const row = rows[i].map(c => String(c).trim().toLowerCase().replace(/^\uFEFF/, ''));
-        if (row.includes('id') || row.includes('name_ru') || row.includes('наименование')) {
-          headerRowIndex = i;
-          break;
-        }
+        if (row.includes('id') || row.includes('name_ru') || row.includes('наименование')) { headerRowIndex = i; break; }
       }
-
-      if (headerRowIndex === -1) {
-        const preview = rows.slice(0, 3).map(r => r.join(' | ')).join('\n');
-        throw new Error('Не найдены заголовки. Первые строки:\n' + preview);
-      }
+      if (headerRowIndex === -1) throw new Error('Не найдены заголовки.');
 
       const headers = rows[headerRowIndex].map(h => String(h).trim().toLowerCase().replace(/^\uFEFF/, ''));
       const dataRows = rows.slice(headerRowIndex + 1);
 
-      const findIdx = (possibleNames) => {
-        for (const name of possibleNames) {
-          const idx = headers.findIndex(h => h === name || h.includes(name));
+      const findIdx = (names) => {
+        for (const n of names) {
+          const idx = headers.findIndex(h => h === n || h.includes(n));
           if (idx !== -1) return idx;
         }
         return -1;
       };
 
       const idx = {
-        id: findIdx(['id', 'код']),
-        name: findIdx(['name_ru', 'name', 'наименование']),
-        cat: findIdx(['category', 'категория', 'раздел']),
-        asm: findIdx(['assortment', 'ассортимент', 'описание']),
-        stock: findIdx(['unit', 'наличие', 'остаток', 'вес', 'фасовка']),
-        man: findIdx(['manufacturer', 'производитель']),
-        price: findIdx(['desc', 'price', 'цена', 'стоимость']),
-        img1: findIdx(['img1', 'фото1']),
-        img2: findIdx(['img2', 'фото2']),
-        img3: findIdx(['img3', 'фото3'])
+        id: findIdx(['id']), name: findIdx(['name_ru', 'наименование']),
+        cat: findIdx(['category', 'категория']), asm: findIdx(['assortment', 'описание']),
+        stock: findIdx(['unit', 'наличие', 'остаток', 'вес']), man: findIdx(['manufacturer', 'производитель']),
+        price: findIdx(['desc', 'price', 'цена']), img1: findIdx(['img1']), img2: findIdx(['img2']), img3: findIdx(['img3'])
       };
 
       PRODUCTS = dataRows.map(row => {
         const getVal = (i) => (i !== -1 && row[i] !== undefined) ? String(row[i]).trim() : '';
-
-        const id = getVal(idx.id);
-        const name = getVal(idx.name);
-        
+        const id = getVal(idx.id), name = getVal(idx.name);
         if (!id && !name) return null;
 
-        const rawCat = getVal(idx.cat);
-        const cleanCat = rawCat.toLowerCase().replace(/[^a-zа-яё]/g, ''); 
-
+        const rawCat = getVal(idx.cat).toLowerCase().replace(/[^a-zа-яё]/g, ''); 
         let cat = 'fruits'; 
-        if (cleanCat.includes('veg') || cleanCat.includes('овощ')) cat = 'vegetables';
-        else if (cleanCat.includes('green') || cleanCat.includes('зелен')) cat = 'greens';
-        else if (cleanCat.includes('fruit') || cleanCat.includes('фрукт')) cat = 'fruits';
-        
-        const assortment = getVal(idx.asm);
-        const stock = getVal(idx.stock); 
-        const manufacturer = getVal(idx.man);
-        
+        if (rawCat.includes('veg') || rawCat.includes('овощ')) cat = 'vegetables';
+        else if (rawCat.includes('green') || rawCat.includes('зелен')) cat = 'greens';
+
         const rawPrice = getVal(idx.price);
         const matchPrice = rawPrice.match(/[\d.,]+/); 
         const cleanPrice = matchPrice ? matchPrice[0].replace(',', '.') : '';
-        const price = !isNaN(parseFloat(cleanPrice)) && cleanPrice !== '' ? parseFloat(cleanPrice) : null;
         
         const rawImgs = [getVal(idx.img1), getVal(idx.img2), getVal(idx.img3)].filter(Boolean);
         const colors = DEFAULT_COLORS[cat] || DEFAULT_COLORS.fruits;
-        const fallbackEmoji = DEFAULT_EMOJI[cat] || '📦';
-
+        
         const images = rawImgs.length ? rawImgs.map((val, index) => {
           const isUrl = val.startsWith('http');
-          return {
-            url: isUrl ? val : null,
-            emoji: !isUrl ? val : null,
-            c1: colors[0],
-            c2: colors[1],
-            label: `Фото ${index + 1}`
-          };
-        }) : [{ emoji: fallbackEmoji, c1: colors[0], c2: colors[1], label: 'Фото' }];
+          return { url: isUrl ? val : null, emoji: !isUrl ? val : null, c1: colors[0], c2: colors[1] };
+        }) : [{ emoji: DEFAULT_EMOJI[cat], c1: colors[0], c2: colors[1] }];
 
         return { 
-          id: id || 'temp_' + Math.random().toString(36).substr(2, 9), 
-          name: name || 'Без названия', 
-          category: cat, assortment, stock, manufacturer, price, images 
+          id, name, category: cat, 
+          assortment: getVal(idx.asm), 
+          stock: getVal(idx.stock), 
+          manufacturer: getVal(idx.man), 
+          price: !isNaN(parseFloat(cleanPrice)) && cleanPrice !== '' ? parseFloat(cleanPrice) : null, 
+          images 
         };
       }).filter(p => p !== null);
 
       renderCatalog();
 
     } catch (error) {
-      console.error('Ошибка загрузки:', error);
-      els.grid.innerHTML = `<div class="empty">
-        <div class="empty__icon">⚠️</div>
-        <p style="color: #ff4b2b; font-weight: bold; white-space: pre-wrap;">${error.message}</p>
-      </div>`;
+      console.error(error);
+      els.grid.innerHTML = `<div class="empty"><div class="empty__icon">⚠️</div><p style="color: #ff4b2b;">${error.message}</p></div>`;
     }
+  }
+
+  /* ================= СКЕЛЕТОНЫ ================= */
+  function renderSkeletons() {
+    let skeletonsHTML = '';
+    for (let i = 0; i < 8; i++) {
+      skeletonsHTML += `
+        <div class="card skeleton-card">
+          <div class="skeleton skeleton-img"></div>
+          <div class="card__body" style="align-items: flex-start; padding: 24px;">
+            <div class="skeleton skeleton-line short" style="margin-bottom: 15px;"></div>
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-line"></div>
+            <div class="skeleton skeleton-line"></div>
+          </div>
+        </div>`;
+    }
+    els.grid.innerHTML = skeletonsHTML;
+    els.count.textContent = 'Загрузка ассортимента...';
   }
 
   /* ================= Слайд-шоу ================= */
   function slideHTML(im) {
-    if (im.url && im.url.startsWith('http')) {
-      return `<div class="slide" style="--c1:${im.c1};--c2:${im.c2}">
-        <img src="${im.url}" alt="Фото товара" style="width:100%; height:100%; object-fit:cover;" loading="lazy">
-      </div>`;
+    if (im.url) {
+      return `<div class="slide"><img src="${im.url}" style="width:100%; height:100%; object-fit:cover;" loading="lazy"></div>`;
     }
-    return `<div class="slide" style="--c1:${im.c1};--c2:${im.c2}">
-      <span class="slide__emoji">${im.emoji}</span>
-    </div>`;
+    return `<div class="slide" style="--c1:${im.c1};--c2:${im.c2}"><span class="slide__emoji">${im.emoji}</span></div>`;
   }
   
   function dotsHTML(images) {
-    return images.map((_, i) =>
-      `<button class="dot${i === 0 ? ' is-active' : ''}" data-dot="${i}" type="button"
-       aria-label="Фото ${i + 1}"></button>`).join('');
+    return images.map((_, i) => `<button class="dot${i === 0 ? ' is-active' : ''}" data-dot="${i}" type="button"></button>`).join('');
   }
   
   function sliderHTML(p, big) {
     const many = p.images.length > 1;
     const stockText = p.stock ? `Наличие: ${p.stock}` : 'Нет в наличии';
     
-    return `<div class="slider${big ? ' slider--lg' : ''}" data-slider
-                 data-count="${p.images.length}" data-index="0">
+    return `<div class="slider${big ? ' slider--lg' : ''}" data-slider data-count="${p.images.length}" data-index="0">
       <div class="slider__track" data-track>${p.images.map(slideHTML).join('')}</div>
       ${many ? `
-        <button class="slider__arrow slider__arrow--prev" data-slide="-1" type="button" aria-label="Предыдущее фото">‹</button>
-        <button class="slider__arrow slider__arrow--next" data-slide="1" type="button" aria-label="Следующее фото">›</button>
+        <button class="slider__arrow slider__arrow--prev" data-slide="-1" type="button">‹</button>
+        <button class="slider__arrow slider__arrow--next" data-slide="1" type="button">›</button>
         <div class="slider__dots">${dotsHTML(p.images)}</div>` : ''}
       ${!big ? `<span class="slider__unit">${stockText}</span>` : ''}
     </div>`;
@@ -947,9 +968,8 @@
     slider.querySelector('[data-track]').style.transform = `translateX(-${i * 100}%)`;
     slider.querySelectorAll('.dot').forEach((d, k) => d.classList.toggle('is-active', k === i));
   }
-  function shiftSlide(slider, dir) {
-    goSlide(slider, (Number(slider.dataset.index) || 0) + dir);
-  }
+  function shiftSlide(slider, dir) { goSlide(slider, (Number(slider.dataset.index) || 0) + dir); }
+  
   function handleSliderClick(e) {
     const slider = e.target.closest('[data-slider]');
     if (!slider) return false;
@@ -961,15 +981,9 @@
   }
 
   /* ================= Отрисовка Каталога ================= */
-  const CATEGORIES = [
-    { id: 'all', name: 'Все' },
-    { id: 'fruits', name: 'Фрукты' },
-    { id: 'vegetables', name: 'Овощи' },
-    { id: 'greens', name: 'Зелень' },
-  ];
+  const CATEGORIES = [{ id: 'all', name: 'Все' }, { id: 'fruits', name: 'Фрукты' }, { id: 'vegetables', name: 'Овощи' }, { id: 'greens', name: 'Зелень' }];
   const CAT_NAME = Object.fromEntries(CATEGORIES.map(c => [c.id, c.name]));
 
-  // Вспомогательная функция: проверяет, есть ли товар в наличии
   function hasStock(p) {
     if (!p.stock) return false;
     const s = p.stock.toLowerCase().trim();
@@ -980,34 +994,26 @@
     const q = state.query.trim().toLowerCase();
     const list = PRODUCTS.filter(p => {
       const byCat = state.category === 'all' || p.category === state.category;
-      const byQuery = !q
-        || p.name.toLowerCase().includes(q)
-        || p.assortment.toLowerCase().includes(q)
-        || p.manufacturer.toLowerCase().includes(q)
-        || (CAT_NAME[p.category] || '').toLowerCase().includes(q);
+      const byQuery = !q || p.name.toLowerCase().includes(q) || p.assortment.toLowerCase().includes(q) || p.manufacturer.toLowerCase().includes(q);
       return byCat && byQuery;
     });
 
-    // 1. Сначала применяем выбранную пользователем сортировку
     if (state.sort === 'name') list.sort((a, b) => a.name.localeCompare(b.name, 'ru'));
     if (state.sort === 'manufacturer') list.sort((a, b) => a.manufacturer.localeCompare(b.manufacturer, 'ru'));
     if (state.sort === 'assortment') list.sort((a, b) => a.assortment.localeCompare(b.assortment, 'ru'));
 
-    // 2. Приоритетная сортировка: товары в наличии всегда выше
     list.sort((a, b) => {
-      const aStock = hasStock(a);
-      const bStock = hasStock(b);
-      if (aStock && !bStock) return -1; // a выше
-      if (!aStock && bStock) return 1;  // b выше
-      return 0; // если оба в наличии или оба нет — оставляем как есть
+      const aStock = hasStock(a), bStock = hasStock(b);
+      if (aStock && !bStock) return -1;
+      if (!aStock && bStock) return 1;
+      return 0;
     });
 
     return list;
   }
 
   function cardHTML(p) {
-    return `<article class="card card--${p.category}" data-id="${p.id}" tabindex="0" role="button"
-                     aria-label="${p.name} — подробнее о товаре">
+    return `<article class="card card--${p.category}" data-id="${p.id}" tabindex="0" role="button">
       ${sliderHTML(p, false)}
       <div class="card__body">
         <span class="card__cat">${CAT_NAME[p.category] || p.category}</span>
@@ -1018,6 +1024,16 @@
     </article>`;
   }
 
+  // Настройка Intersection Observer для анимации появления
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target); // Анимируем только один раз
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px 50px 0px' });
+
   function renderCatalog() {
     const items = getVisible();
     const q = state.query.trim();
@@ -1027,20 +1043,19 @@
       : `${items.length} ${plural(items.length, ['позиция', 'позиции', 'позиций'])} в каталоге`;
 
     if (!items.length) {
-      els.grid.innerHTML = `<div class="empty">
-        <div class="empty__icon">🔍</div>
-        <p>По вашему запросу ничего не нашлось</p>
-      </div>`;
+      els.grid.innerHTML = `<div class="empty"><div class="empty__icon">🔍</div><p>По вашему запросу ничего не нашлось</p></div>`;
       return;
     }
+    
     els.grid.innerHTML = items.map(cardHTML).join('');
+    
+    // Запускаем наблюдение за новыми карточками
+    document.querySelectorAll('.card').forEach(card => observer.observe(card));
   }
 
   function renderChips() {
     els.chips.innerHTML = CATEGORIES.map(c => `
-      <button class="chip${c.id === state.category ? ' is-active' : ''}"
-              data-cat="${c.id}" type="button" role="tab"
-              aria-selected="${c.id === state.category}">${c.name}</button>`).join('');
+      <button class="chip${c.id === state.category ? ' is-active' : ''}" data-cat="${c.id}" type="button">${c.name}</button>`).join('');
   }
 
   /* ================= Модальное окно ================= */
@@ -1061,24 +1076,20 @@
 
     els.modalBody.innerHTML = `
       <div class="m-media">${sliderHTML(p, true)}</div>
-      <button class="m-close" data-close type="button" aria-label="Закрыть">✕</button>
+      <button class="m-close" data-close type="button">✕</button>
       <div class="m-body">
         <span class="card__cat">${CAT_NAME[p.category] || p.category}</span>
         <h2>${p.name}</h2>
-
         <h3 class="m-title">Характеристики</h3>
         <div class="specs">
           <div><span>Описание</span><b>${p.assortment || '—'}</b></div>
           <div><span>Свободный остаток</span><b>${availability}</b></div>
           <div><span>Производитель</span><b>${p.manufacturer || '—'}</b></div>
         </div>
-
         <h3 class="m-title">Цена</h3>
         ${priceBlock}
-
         <p class="m-note">Объёмы поставки, минимальная партия и график отгрузок уточняются у менеджера.</p>
       </div>`;
-
     els.modal.classList.add('is-open');
     document.body.classList.add('is-locked');
   }
@@ -1090,25 +1101,11 @@
   }
 
   /* ================= События ================= */
-  function scrollToCatalog() {
-    els.catalog.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
+  function scrollToCatalog() { els.catalog.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 
-  els.search.addEventListener('input', e => {
-    state.query = e.target.value;
-    renderCatalog();
-  });
-  els.search.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      scrollToCatalog();
-    }
-  });
-
-  document.querySelectorAll('[data-scroll-catalog]').forEach(btn => {
-    btn.addEventListener('click', scrollToCatalog);
-  });
-
+  els.search.addEventListener('input', e => { state.query = e.target.value; renderCatalog(); });
+  document.querySelectorAll('[data-scroll-catalog]').forEach(btn => btn.addEventListener('click', scrollToCatalog));
+  
   els.chips.addEventListener('click', e => {
     const chip = e.target.closest('[data-cat]');
     if (!chip) return;
@@ -1117,10 +1114,7 @@
     renderCatalog();
   });
 
-  els.sort.addEventListener('change', e => {
-    state.sort = e.target.value;
-    renderCatalog();
-  });
+  els.sort.addEventListener('change', e => { state.sort = e.target.value; renderCatalog(); });
 
   els.grid.addEventListener('click', e => {
     const card = e.target.closest('.card');
@@ -1130,18 +1124,9 @@
     openProduct(card.dataset.id);
   });
 
-  els.grid.addEventListener('keydown', e => {
-    if (e.key !== 'Enter' && e.key !== ' ') return;
-    const card = e.target.closest('.card');
-    if (!card) return;
-    e.preventDefault();
-    openProduct(card.dataset.id);
-  });
-
   els.grid.addEventListener('pointerdown', e => {
     const slider = e.target.closest('[data-slider]');
-    if (!slider) return;
-    pointerStart = { x: e.clientX, slider };
+    if (slider) pointerStart = { x: e.clientX, slider };
   });
   els.grid.addEventListener('pointerup', e => {
     if (!pointerStart) return;
@@ -1153,15 +1138,38 @@
     }
     pointerStart = null;
   });
-  els.grid.addEventListener('pointercancel', () => { pointerStart = null; });
 
   els.modal.addEventListener('click', e => {
     if (e.target === els.modal || e.target.closest('[data-close]')) { closeModal(); return; }
     handleSliderClick(e);
   });
+  
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && els.modal.classList.contains('is-open')) closeModal(); });
 
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && els.modal.classList.contains('is-open')) closeModal();
+  /* ================= АНИМАЦИИ И ЭФФЕКТЫ ================= */
+  // Кнопка "Наверх" и Параллакс
+  window.addEventListener('scroll', () => {
+    // Кнопка "Наверх"
+    if (window.scrollY > 500) {
+      els.backToTop.classList.add('is-visible');
+    } else {
+      els.backToTop.classList.remove('is-visible');
+    }
+
+    // Легкий параллакс в Hero
+    const scrollY = window.scrollY;
+    if (scrollY < window.innerHeight) {
+      document.querySelectorAll('.hero__bg-fruit').forEach(el => {
+        const speed = parseFloat(el.dataset.speed) || 0;
+        el.style.transform = `translateY(${scrollY * speed}px) rotate(${speed * 100}deg)`;
+      });
+      const logoWrapper = document.querySelector('.hero__image-wrapper');
+      if (logoWrapper) logoWrapper.style.transform = `translateY(${scrollY * 0.15}px)`;
+    }
+  });
+
+  els.backToTop.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
   /* ================= Старт ================= */
