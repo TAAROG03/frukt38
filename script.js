@@ -412,7 +412,7 @@ els.backToTop.addEventListener('click', () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
-/* ================= СКАЧИВАНИЕ В EXCEL ================= */
+/* ================= СКАЧИВАНИЕ В EXCEL (ПРАЙС + БЛАНК) ================= */
 document.getElementById('downloadExcelBtn').addEventListener('click', () => {
   if (typeof XLSX === 'undefined') {
     alert("Библиотека для скачивания Excel не загрузилась. Проверьте интернет-соединение и обновите страницу.");
@@ -425,25 +425,38 @@ document.getElementById('downloadExcelBtn').addEventListener('click', () => {
     return;
   }
 
-  const dataToExport = items.map(p => {
-    return {
-      "Наименование": p.name,
-      "Цена (руб/кг)": p.price !== null ? p.price : 'Скоро',
-      "Свободный остаток": p.stock || 'Нет в наличии'
-    };
-  });
+  // 1. Формируем данные для листа "Прайс"
+  const priceData = items.map(p => ({
+    "Наименование": p.name,
+    "Цена (руб/кг)": p.price !== null ? p.price : 'Скоро',
+    "Свободный остаток": p.stock || 'Нет в наличии'
+  }));
 
+  // 2. Формируем данные для листа "Бланк заказа" (добавляем пустые колонки для заполнения)
+  const orderData = items.map(p => ({
+    "Наименование": p.name,
+    "Цена (руб/кг)": p.price !== null ? p.price : 'Скоро',
+    "Свободный остаток": p.stock || 'Нет в наличии',
+    "Количество (кг/шт)": "", // Клиент заполнит сам
+    "Сумма (руб)": ""         // Клиент заполнит сам (или вставит формулу)
+  }));
+
+  // Создаем новую книгу
   const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.json_to_sheet(dataToExport);
+  
+  // Создаем лист Прайс
+  const wsPrice = XLSX.utils.json_to_sheet(priceData);
+  wsPrice['!cols'] = [{ wch: 40 }, { wch: 20 }, { wch: 20 }];
+  XLSX.utils.book_append_sheet(wb, wsPrice, "Прайс");
 
-  ws['!cols'] = [
-    { wch: 40 }, { wch: 20 }, { wch: 20 }
-  ];
+  // Создаем лист Бланк заказа
+  const wsOrder = XLSX.utils.json_to_sheet(orderData);
+  wsOrder['!cols'] = [{ wch: 40 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 20 }];
+  XLSX.utils.book_append_sheet(wb, wsOrder, "Бланк заказа");
 
-  XLSX.utils.book_append_sheet(wb, ws, "Прайс");
-
+  // Сохраняем файл
   const date = new Date().toLocaleDateString('ru-RU').replace(/\./g, '-');
-  XLSX.writeFile(wb, `Прайс_Фруктовая_лавка_${date}.xlsx`);
+  XLSX.writeFile(wb, `Прайс_и_Бланк_Фруктовая_лавка_${date}.xlsx`);
 });
 /* ======================================================= */
 
