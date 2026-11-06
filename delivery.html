@@ -37,32 +37,24 @@
 
   <div class="page-content">
     <h2>Как мы работаем</h2>
+    
+    <!-- Здесь оставлены только 2 карточки -->
     <div class="info-grid">
       <div class="info-card">
         <div class="info-card__icon">⏰</div>
         <h3>График отгрузок</h3>
-        <p>Прием заявок до 18:00. Доставка осуществляется на следующий день с 05:00 до 12:00.</p>
-      </div>
-      <div class="info-card">
-        <div class="info-card__icon">🚛</div>
-        <h3>Доставка по городу</h3>
-        <p>Бесплатно при заказе от 10 000 ₽. При меньшей сумме — 500 ₽.</p>
+        <p>Прием заявок до 17:00. Доставка осуществляется с 7:00 до 18:00.</p>
       </div>
       <div class="info-card">
         <div class="info-card__icon">🏙️</div>
-        <h3>Доставка по области</h3>
+        <h3>Доставка по Иркутской области</h3>
         <p>Тариф рассчитывается индивидуально в зависимости от километража и объема.</p>
       </div>
     </div>
 
-    <h2 style="margin-top: 40px;">Способы оплаты</h2>
-    <ul>
-      <li><strong>Безналичный расчет:</strong> Работаем с НДС и без НДС. Выставляем счета для юридических лиц и ИП.</li>
-      <li><strong>Оплата по факту:</strong> Для постоянных клиентов возможна оплата при получении товара (только для юр. лиц).</li>
-      <li><strong>СБП / Карта:</strong> Для быстрой оплаты небольших пробных партий.</li>
-    </ul>
+    <!-- Блок "Способы оплаты" полностью удален -->
 
-    <div class="m-note" style="margin-top: 20px;">
+    <div class="m-note" style="margin-top: 40px;">
       Возврат тары (ящиков, коробов) осуществляется при следующей поставке. Пожалуйста, сохраняйте чистую тару.
     </div>
   </div>
@@ -76,6 +68,7 @@
 </footer>
 
 <script>
+  // Скрипт для смены темы
   const themeToggleBtn = document.getElementById('themeToggle');
   const htmlElement = document.documentElement;
   const savedTheme = localStorage.getItem('fruitShopTheme') || 'light';
