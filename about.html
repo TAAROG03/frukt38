@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>О компании — Фруктовая лавка</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍏</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="header">
+  <div class="header__inner">
+    <a href="fruct_desigh.html" class="logo">
+      <img src="logo.png" alt="Фруктовая лавка" class="logo__img">
+    </a>
+    <div class="header__nav-group">
+      <nav class="nav">
+        <a href="fruct_desigh.html" class="nav__link">Главная</a>
+        <a href="about.html" class="nav__link is-active">О компании</a>
+        <a href="delivery.html" class="nav__link">Доставка и оплата</a>
+        <a href="contacts.html" class="nav__link">Контакты</a>
+      </nav>
+      <button id="themeToggle" class="theme-toggle" aria-label="Сменить тему">🌙</button>
+    </div>
+  </div>
+</header>
+
+<main class="main" style="flex: 1;">
+  <div class="catalog-head">
+    <h2>О компании</h2>
+    <p>Прямые поставки свежих фруктов, овощей и зелени с 2015 года</p>
+  </div>
+
+  <div class="page-content">
+    <h2>Свежесть, которой можно доверять</h2>
+    <p>«Фруктовая лавка» — это надежный оптовый поставщик для ресторанов, кафе, розничных сетей и магазинов. Мы работаем напрямую с фермерскими хозяйствами России, а также с проверенными экспортерами из Турции, Узбекистана и Эквадора.</p>
+    <p>Наша главная задача — чтобы вы получали товар первой свежести по честным ценам. Мы контролируем каждый этап: от сбора урожая до разгрузки у ваших дверей.</p>
+    
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-card__icon">🚛</div>
+        <h3>Своя логистика</h3>
+        <p>Собственный парк рефрижераторов сохраняет идеальную температуру при перевозке.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card__icon">🤝</div>
+        <h3>Прямые контракты</h3>
+        <p>Работаем без посредников, что позволяет держать минимальные оптовые цены.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card__icon">🔍</div>
+        <h3>Строгий отбор</h3>
+        <p>Каждая партия проходит визуальный контроль и проверку на соответствие ГОСТ.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer__inner">
+    <img src="logo-vertical.png" alt="Фруктовая лавка" class="footer__logo">
+    <p class="footer__text">© 2026 Фруктовая лавка. Оптовые поставки свежих фруктов, овощей и зелени.</p>
+  </div>
+</footer>
+
+<script>
+  // Простой скрипт для темы на страницах без основного script.js
+  const themeToggleBtn = document.getElementById('themeToggle');
+  const htmlElement = document.documentElement;
+  const savedTheme = localStorage.getItem('fruitShopTheme') || 'light';
+  
+  function applyTheme(theme) {
+    htmlElement.setAttribute('data-theme', theme);
+    localStorage.setItem('fruitShopTheme', theme);
+    themeToggleBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
+  }
+  applyTheme(savedTheme);
+  
+  themeToggleBtn.addEventListener('click', () => {
+    applyTheme(htmlElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+  });
+</script>
+</body>
+</html>
