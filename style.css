@@ -541,9 +541,10 @@ h1, h2, h3, p { margin: 0; }
   .nav { display: none; }
   .footer__logo { height: 100px; }
 }
+
 /* ================= РАЗДЕЛИТЕЛЬ И ТОВАРЫ БЕЗ НАЛИЧИЯ ================= */
 .grid-divider {
-  grid-column: 1 / -1; /* Растягиваем на всю ширину сетки */
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -563,11 +564,10 @@ h1, h2, h3, p { margin: 0; }
   background: var(--border);
 }
 
-/* Стили для карточек без наличия */
 .card--out-of-stock {
   opacity: 0.6;
   filter: grayscale(40%);
-  transition: opacity 0.3s, filter 0.3s, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: opacity 0.3s, filter 0.3s, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s, background-color 0.3s;
 }
 .card--out-of-stock:hover {
   opacity: 1;
