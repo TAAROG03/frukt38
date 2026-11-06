@@ -11,18 +11,20 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+<!-- ПОДКЛЮЧЕНИЕ СТИЛЕЙ -->
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header class="header">
   <div class="header__inner">
-    <a href="fruct_desigh.html" class="logo">
+    <!-- Ссылка-заглушка, чтобы работало локально -->
+    <a href="#" class="logo">
       <img src="logo.png" alt="Фруктовая лавка" class="logo__img">
     </a>
     <div class="header__nav-group">
       <nav class="nav">
-        <a href="fruct_desigh.html" class="nav__link is-active">Главная</a>
+        <a href="#" class="nav__link is-active">Главная</a>
       </nav>
       <button id="themeToggle" class="theme-toggle" aria-label="Сменить тему">🌙</button>
     </div>
@@ -64,7 +66,6 @@
     <div id="chips" class="chips" role="tablist" aria-label="Категории"></div>
     
     <div class="toolbar-actions">
-      <!-- ОБНОВЛЕННЫЙ ТЕКСТ КНОПКИ -->
       <button id="downloadExcelBtn" class="btn-excel" type="button">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
         Скачать прайс и бланк
