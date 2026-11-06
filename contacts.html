@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Контакты — Фруктовая лавка</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍏</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="header">
+  <div class="header__inner">
+    <a href="fruct_desigh.html" class="logo">
+      <img src="logo.png" alt="Фруктовая лавка" class="logo__img">
+    </a>
+    <div class="header__nav-group">
+      <nav class="nav">
+        <a href="fruct_desigh.html" class="nav__link">Главная</a>
+        <a href="about.html" class="nav__link">О компании</a>
+        <a href="delivery.html" class="nav__link">Доставка и оплата</a>
+        <a href="contacts.html" class="nav__link is-active">Контакты</a>
+      </nav>
+      <button id="themeToggle" class="theme-toggle" aria-label="Сменить тему">🌙</button>
+    </div>
+  </div>
+</header>
+
+<main class="main" style="flex: 1;">
+  <div class="catalog-head">
+    <h2>Контакты и Реквизиты</h2>
+    <p>Свяжитесь с нами удобным способом</p>
+  </div>
+
+  <div class="contact-grid">
+    <div class="contact-card">
+      <div class="contact-icon">📞</div>
+      <h3>Отдел продаж</h3>
+      <p>Прием заявок и консультации:</p>
+      <a href="tel:+79000000000" class="contact-link">+7 (900) 000-00-00</a>
+      <a href="mailto:zakaz@fruit-lavka.ru" class="contact-link">zakaz@fruit-lavka.ru</a>
+    </div>
+
+    <div class="contact-card">
+      <div class="contact-icon">📍</div>
+      <h3>Склад и офис</h3>
+      <p>Приезжайте на дегустацию:</p>
+      <p style="font-size: 15px; font-weight: 600; color: var(--text); margin-top: 5px;">
+        г. Москва, ул. Фруктовая, д. 15<br>(Территория оптового рынка)
+      </p>
+    </div>
+  </div>
+
+  <div class="page-content" style="margin-top: 30px;">
+    <h2>Реквизиты компании</h2>
+    <p>Для заключения договоров и выставления счетов:</p>
+    
+    <div class="requisites">
+      <p><span>Полное наименование</span> <span>ООО «Фруктовая Лавка»</span></p>
+      <p><span>ИНН</span> <span>7700000000</span></p>
+      <p><span>КПП</span> <span>770001001</span></p>
+      <p><span>ОГРН</span> <span>1157746000000</span></p>
+      <p><span>Юридический адрес</span> <span>г. Москва, ул. Фруктовая, д. 15</span></p>
+      <p><span>Расчетный счет</span> <span>40702810000000000000</span></p>
+      <p><span>Банк</span> <span>ПАО Сбербанк, г. Москва</span></p>
+      <p><span>БИК</span> <span>044525225</span></p>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer__inner">
+    <img src="logo-vertical.png" alt="Фруктовая лавка" class="footer__logo">
+    <p class="footer__text">© 2026 Фруктовая лавка. Оптовые поставки свежих фруктов, овощей и зелени.</p>
+  </div>
+</footer>
+
+<script>
+  const themeToggleBtn = document.getElementById('themeToggle');
+  const htmlElement = document.documentElement;
+  const savedTheme = localStorage.getItem('fruitShopTheme') || 'light';
+  
+  function applyTheme(theme) {
+    htmlElement.setAttribute('data-theme', theme);
+    localStorage.setItem('fruitShopTheme', theme);
+    themeToggleBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
+  }
+  applyTheme(savedTheme);
+  
+  themeToggleBtn.addEventListener('click', () => {
+    applyTheme(htmlElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+  });
+</script>
+</body>
+</html>
