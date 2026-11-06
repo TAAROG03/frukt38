@@ -248,7 +248,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function cardHTML(p) {
-    return `<article class="card card--${p.category}" data-id="${p.id}" tabindex="0" role="button">
+    const isOutOfStock = !hasStock(p);
+    
+    return `<article class="card card--${p.category} ${isOutOfStock ? 'card--out-of-stock' : ''}" data-id="${p.id}" tabindex="0" role="button">
       ${sliderHTML(p, false)}
       <div class="card__body">
         <span class="card__cat">${CAT_NAME[p.category] || p.category}</span>
@@ -281,7 +283,18 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     
-    els.grid.innerHTML = items.map(cardHTML).join('');
+    let html = '';
+    let dividerAdded = false;
+
+    items.forEach(p => {
+      if (!hasStock(p) && !dividerAdded) {
+        html += `<div class="grid-divider">Ожидаются к поступлению</div>`;
+        dividerAdded = true;
+      }
+      html += cardHTML(p);
+    });
+
+    els.grid.innerHTML = html;
     document.querySelectorAll('.card').forEach(card => observer.observe(card));
   }
 
