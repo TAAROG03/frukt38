@@ -541,3 +541,35 @@ h1, h2, h3, p { margin: 0; }
   .nav { display: none; }
   .footer__logo { height: 100px; }
 }
+/* ================= РАЗДЕЛИТЕЛЬ И ТОВАРЫ БЕЗ НАЛИЧИЯ ================= */
+.grid-divider {
+  grid-column: 1 / -1; /* Растягиваем на всю ширину сетки */
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 30px 0 10px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
+}
+.grid-divider::before,
+.grid-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Стили для карточек без наличия */
+.card--out-of-stock {
+  opacity: 0.6;
+  filter: grayscale(40%);
+  transition: opacity 0.3s, filter 0.3s, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.card--out-of-stock:hover {
+  opacity: 1;
+  filter: grayscale(0%);
+}
