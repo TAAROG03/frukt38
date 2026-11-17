@@ -247,14 +247,32 @@ document.addEventListener('DOMContentLoaded', () => {
     return list;
   }
 
+  // ================= ОБНОВЛЕННАЯ КАРТОЧКА С ЦЕНОЙ =================
   function cardHTML(p) {
     const isOutOfStock = !hasStock(p);
+    
+    let priceHTML = '';
+    if (p.price !== null) {
+      const formattedPrice = new Intl.NumberFormat('ru-RU').format(p.price);
+      
+      // Умное определение ЕИ из текста остатка
+      let unitLabel = '₽';
+      if (p.stock) {
+        if (p.stock.toLowerCase().includes('шт')) unitLabel = '₽ / шт';
+        else if (p.stock.toLowerCase().includes('кг')) unitLabel = '₽ / кг';
+      }
+      
+      priceHTML = `<div class="card__price">${formattedPrice} <span>${unitLabel}</span></div>`;
+    } else {
+      priceHTML = `<div class="card__price card__price--empty">Цена по запросу</div>`;
+    }
     
     return `<article class="card card--${p.category} ${isOutOfStock ? 'card--out-of-stock' : ''}" data-id="${p.id}" tabindex="0" role="button">
       ${sliderHTML(p, false)}
       <div class="card__body">
         <span class="card__cat">${CAT_NAME[p.category] || p.category}</span>
         <h3 class="card__name">${p.name}</h3>
+        ${priceHTML}
         <div class="card__divider"></div>
         <p class="card__asm">${p.assortment || 'Описание ассортимента уточняется'}</p>
       </div>
