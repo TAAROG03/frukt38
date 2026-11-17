@@ -247,21 +247,17 @@ document.addEventListener('DOMContentLoaded', () => {
     return list;
   }
 
-  // ================= ОБНОВЛЕННАЯ КАРТОЧКА С ЦЕНОЙ =================
   function cardHTML(p) {
     const isOutOfStock = !hasStock(p);
     
     let priceHTML = '';
     if (p.price !== null) {
       const formattedPrice = new Intl.NumberFormat('ru-RU').format(p.price);
-      
-      // Умное определение ЕИ из текста остатка
       let unitLabel = '₽';
       if (p.stock) {
         if (p.stock.toLowerCase().includes('шт')) unitLabel = '₽ / шт';
         else if (p.stock.toLowerCase().includes('кг')) unitLabel = '₽ / кг';
       }
-      
       priceHTML = `<div class="card__price">${formattedPrice} <span>${unitLabel}</span></div>`;
     } else {
       priceHTML = `<div class="card__price card__price--empty">Цена по запросу</div>`;
@@ -457,9 +453,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      // Структура данных
       const wsData = [
-        ["Наименование", "Цена (руб/кг)", "Свободный остаток", "", "", "", "БЛАНК", "", ""],
-        ["", "", "", "", "", "", "Наименование", "Цена (руб/кг)", "Требуемое вложение"]
+        ["Наименование", "Цена (руб/кг)", "Свободный остаток", "БЛАНК", "", ""],
+        ["", "", "", "Наименование(количество)", "Сумма (руб/кг)", "Требуемое вложение"]
       ];
 
       items.forEach(p => {
@@ -467,22 +464,106 @@ document.addEventListener('DOMContentLoaded', () => {
           p.name,
           p.price !== null ? p.price : 'Скоро',
           p.stock || 'Нет в наличии',
-          "", "", "", "", "", ""
+          "", // Столбец D
+          "", // Столбец E
+          ""  // Столбец F
         ]);
       });
 
+      wsData.push(["", "", "ИТОГО", "", "", ""]);
+
       const ws = XLSX.utils.aoa_to_sheet(wsData);
 
+      // Ширина столбцов
       ws['!cols'] = [
         { wch: 35 }, { wch: 15 }, { wch: 20 }, 
-        { wch: 3 }, { wch: 3 }, { wch: 3 }, 
-        { wch: 35 }, { wch: 15 }, { wch: 20 }
+        { wch: 25 }, { wch: 15 }, { wch: 20 }
       ];
 
+      // Объединение ячеек для заголовков
       ws['!merges'] = [
-        { s: { r: 0, c: 6 }, e: { r: 0, c: 8 } }
+        { s: { r: 0, c: 3 }, e: { r: 0, c: 5 } }
       ];
 
+      // Стили
+      const borderStyle = { style: "thin", color: { rgb: "000000" } };
+      const cellBorder = { top: borderStyle, bottom: borderStyle, left: borderStyle, right: borderStyle };
+      
+      const styleHeader = {
+        font: { bold: true },
+        fill: { fgColor: { rgb: "EEEEEE" } },
+        alignment: { horizontal: "center", vertical: "center", wrapText: true },
+        border: cellBorder
+      };
+
+      const styleData = {
+        border: cellBorder,
+        alignment: { vertical: "center" }
+      };
+
+      const styleTotalYellow = {
+        font: { bold: true },
+        fill: { fgColor: { rgb: "FFFF00" } },
+        border: cellBorder,
+        alignment: { vertical: "center", horizontal: "center" }
+      };
+
+      const styleTotalNoBg = {
+        font: { bold: true },
+        border: cellBorder,
+        alignment: { vertical: "center" }
+      };
+
+      const firstDataRow = 3; 
+      const lastDataRow = firstDataRow + items.length - 1;
+      const totalRowIndex = wsData.length - 1; 
+      const totalRowExcel = totalRowIndex + 1;
+
+      // Применяем стили ко всем ячейкам
+      const range = XLSX.utils.decode_range(ws['!ref']);
+      for (let R = range.s.r; R <= range.e.r; ++R) {
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+          const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+          if (!ws[cellRef]) ws[cellRef] = { t: 's', v: '' }; // Создаем пустую ячейку, если ее нет
+
+          // Стили для заголовков
+          if (R === 0 || R === 1) {
+            ws[cellRef].s = styleHeader;
+          } 
+          // Стили для строки ИТОГО (желтый фон для D, E, F)
+          else if (R === totalRowIndex) {
+            if (C >= 3) {
+              ws[cellRef].s = styleTotalYellow;
+            } else {
+              ws[cellRef].s = styleTotalNoBg;
+            }
+          } 
+          // Стили для обычных строк
+          else {
+            ws[cellRef].s = styleData;
+          }
+        }
+      }
+
+      // Внедряем формулы и применяем к ним стили данных
+      items.forEach((_, i) => {
+        const rowNum = firstDataRow + i;
+        const cellE = XLSX.utils.encode_cell({ r: rowNum - 1, c: 4 });
+        ws[cellE] = { 
+            t: 'n', 
+            f: `IF(D${rowNum}="","",D${rowNum}*B${rowNum})`, // Умная формула: если D пустое, E тоже пустое
+            s: styleData 
+        }; 
+      });
+
+      // Формулы для ИТОГО
+      const totalECell = XLSX.utils.encode_cell({ r: totalRowIndex, c: 4 });
+      ws[totalECell] = { t: 'n', f: `SUM(E${firstDataRow}:E${lastDataRow})`, s: styleTotalYellow };
+
+      const totalDCell = XLSX.utils.encode_cell({ r: totalRowIndex, c: 3 });
+      ws[totalDCell] = { t: 'n', f: `SUM(D${firstDataRow}:D${lastDataRow})`, s: styleTotalYellow };
+
+      // Сохранение файла
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Прайс и Бланк");
 
